@@ -761,6 +761,108 @@ Module[
 ] // Ex["plane-slab-bvp.pdf"]
 
 
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    xSlabMin, xSlabMax,
+    ySlabMin, ySlabMax, ySlabMid,
+    xRadiation, yRadiationMargin,
+    numRadiation, yRadiationValues,
+    radiationArrowStyle, radiationArrowSize,
+    xAxisMin, xAxisMax, yAxis,
+    axisStyle,
+    textStyle,
+    dummyForTrailingCommas
+  },
+  (* Slab dimensions *)
+  {xSlabMin, xSlabMax} = {0, 1};
+  {ySlabMin, ySlabMax} = {0, 1.7};
+  ySlabMid = Way[ySlabMin, ySlabMax];
+  (* Radiation arrow specs *)
+  xRadiation = Way[xSlabMin, xSlabMax, -0.15];
+  yRadiationMargin = Way[ySlabMin, ySlabMax, 0.05];
+  numRadiation = 6;
+  yRadiationValues = Subdivide[
+    ySlabMin + yRadiationMargin,
+    ySlabMax - yRadiationMargin,
+    numRadiation - 1
+  ];
+  radiationArrowStyle = Arrowheads[0.025];
+  radiationArrowSize = 2.2 Abs[xRadiation];
+  (* x-axis specs *)
+  xAxisMin = xRadiation - 2 radiationArrowSize;
+  xAxisMax = xSlabMax + 2 radiationArrowSize;
+  yAxis = ySlabMin - 0.7 radiationArrowSize;
+  axisStyle = Directive[Arrowheads[0.05]];
+  (* Make diagram *)
+  textStyle = Style[#, 9] &;
+  Show[
+    (* Slab *)
+    Graphics @ {
+      SlidesStyle["InteriorRegion"],
+      Rectangle[{xSlabMin, ySlabMin}, {xSlabMax, ySlabMax}]
+    },
+    (* Slab horizontal boundaries *)
+    Graphics @ {GeneralStyle["DefaultThick"],
+      Line @ {{xSlabMin, ySlabMax}, {xSlabMax, ySlabMax}},
+      Line @ {{xSlabMin, ySlabMin}, {xSlabMax, ySlabMin}},
+      {}
+    },
+    (* Slab radiation boundary *)
+    Graphics @ {
+      BoundaryTracingStyle["Traced"],
+      SlidesStyle["Boundary"],
+      Line @ {{xSlabMin, ySlabMax}, {xSlabMin, ySlabMin}},
+      {}
+    },
+    (* Radiation arrows *)
+    Graphics @ {radiationArrowStyle,
+      Table[
+        SquigglyArrow[{xRadiation, yRadiation}, Pi, radiationArrowSize]
+        , {yRadiation, yRadiationValues}
+      ],
+      Text[
+        "radiation" // textStyle
+        , {xRadiation - radiationArrowSize, ySlabMid}
+        , {1.3, -0.2}
+      ],
+      {}
+    },
+    (* Constant temperature boundary *)
+    Graphics @ {
+      {
+        BoundaryTracingStyle["Contour"], SlidesStyle["Source"],
+        Line @ {{xSlabMax, ySlabMax}, {xSlabMax, ySlabMin}}
+      },
+      Text[
+        Column[{"constant", "temperature"}
+          , Alignment -> Center
+          , Spacings -> 0
+        ] // textStyle
+        , {xSlabMax, ySlabMid}
+        , {-1.2, 0}
+      ],
+      {}
+    },
+    (* x-axis *)
+    Graphics @ {axisStyle,
+      Arrow @ {{xAxisMin, yAxis}, {xAxisMax, yAxis}},
+      Text[
+        Italicise["x"] // textStyle
+        , {xAxisMax, yAxis}
+        , {-2.5, -0.2}
+      ],
+      {}
+    },
+    {}
+    , ImageSize -> 0.55 ImageSizeTextWidthBeamer
+  ]
+] // Ex["plane-slab-bvp-slides.pdf"];
+
+
 (* ::Section:: *)
 (*Figure: Traced boundaries, single spike (plane-traced-boundary-spike.pdf)*)
 
@@ -983,6 +1085,180 @@ Module[
 ] // Ex["plane-traced-boundaries.pdf"]
 
 
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+(* ::Subsubsection:: *)
+(*Everything*)
+
+
+Module[
+ {xMin, xMax, yMax,
+  xMinPlot, xMaxPlot, yMaxPlot,
+  xTerm,
+  cMax, cList
+ },
+  (* Viable & physical range *)
+  xMin = 0;
+  xMax = 1;
+  yMax = Ceiling[2 yTraMax, 0.2];
+  (* Actual plot range *)
+  xMinPlot = -0.267;
+  xMaxPlot = +1.27;
+  yMaxPlot = 0.95 yMax;
+  (* Critical terminal curve *)
+  xTerm = 1;
+  (* Values of integration constant *)
+  cMax = 0.95 yMax;
+  cList = Subdivide[-yMax, yMax, 8];
+  Show[
+    EmptyFrame[{xMinPlot, xMaxPlot}, {-yMaxPlot, yMaxPlot},
+      AspectRatio -> Automatic,
+      FrameLabel -> {
+        Italicise["x"] // Margined @ {{0, 0}, {0, -10}},
+        Italicise["y"]
+      },
+      FrameTicksStyle -> 8,
+      ImageSize -> 0.85 * 0.5 ImageSizeTextWidthBeamer,
+      LabelStyle -> 10
+    ],
+    (* Unphysical region *)
+    Graphics @ {BoundaryTracingStyle["Unphysical"],
+      Rectangle[
+        {Way[xMinPlot, xMin, -1], -2 yMaxPlot},
+        {xMin, +2 yMaxPlot}
+      ]
+    },
+    (* Non-viable domain *)
+    Graphics @ {BoundaryTracingStyle["NonViable"],
+      Rectangle[
+        {xMax, -2 yMaxPlot},
+        {Way[xMax, xMaxPlot, 2], +2 yMaxPlot}
+      ]
+    },
+    (* Traced boundaries *)
+    Table[
+      Plot[c + yTra[x] {1, -1}, {x, xMin, xMax},
+        PlotPoints -> 3,
+        PlotRange -> {-yMax, yMax},
+        PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+      ]
+    , {c, cList}],
+    (* Critical terminal curve *)
+    ParametricPlot[
+      {xTerm, y}, {y, -yMax, yMax},
+      PlotPoints -> 2,
+      PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+    ]
+  ]
+] // Ex["plane-traced-boundaries-slides_everything.pdf"];
+
+
+(* ::Subsubsection:: *)
+(*Both regions (unphysical and non-viable)*)
+
+
+Module[
+ {xMin, xMax, yMax,
+  xMinPlot, xMaxPlot, yMaxPlot,
+  xTerm,
+  cMax, cList
+ },
+  (* Viable & physical range *)
+  xMin = 0;
+  xMax = 1;
+  yMax = Ceiling[2 yTraMax, 0.2];
+  (* Actual plot range *)
+  xMinPlot = -0.267;
+  xMaxPlot = +1.27;
+  yMaxPlot = 0.95 yMax;
+  (* Critical terminal curve *)
+  xTerm = 1;
+  (* Values of integration constant *)
+  cMax = 0.95 yMax;
+  cList = Subdivide[-yMax, yMax, 8];
+  Show[
+    EmptyFrame[{xMinPlot, xMaxPlot}, {-yMaxPlot, yMaxPlot},
+      AspectRatio -> Automatic,
+      FrameLabel -> {
+        Italicise["x"] // Margined @ {{0, 0}, {0, -10}},
+        Italicise["y"]
+      },
+      FrameTicksStyle -> 8,
+      ImageSize -> 0.85 * 0.5 ImageSizeTextWidthBeamer,
+      LabelStyle -> 10
+    ],
+    (* Unphysical region *)
+    Graphics @ {BoundaryTracingStyle["Unphysical"],
+      Rectangle[
+        {Way[xMinPlot, xMin, -1], -2 yMaxPlot},
+        {xMin, +2 yMaxPlot}
+      ]
+    },
+    (* Non-viable domain *)
+    Graphics @ {BoundaryTracingStyle["NonViable"],
+      Rectangle[
+        {xMax, -2 yMaxPlot},
+        {Way[xMax, xMaxPlot, 2], +2 yMaxPlot}
+      ]
+    },
+    (* Critical terminal curve *)
+    ParametricPlot[
+      {xTerm, y}, {y, -yMax, yMax},
+      PlotPoints -> 2,
+      PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+    ]
+  ]
+] // Ex["plane-traced-boundaries-slides_regions.pdf"];
+
+
+(* ::Subsubsection:: *)
+(*Unphysical region*)
+
+
+Module[
+ {xMin, xMax, yMax,
+  xMinPlot, xMaxPlot, yMaxPlot,
+  xTerm,
+  cMax, cList
+ },
+  (* Viable & physical range *)
+  xMin = 0;
+  xMax = 1;
+  yMax = Ceiling[2 yTraMax, 0.2];
+  (* Actual plot range *)
+  xMinPlot = -0.267;
+  xMaxPlot = +1.27;
+  yMaxPlot = 0.95 yMax;
+  (* Critical terminal curve *)
+  xTerm = 1;
+  (* Values of integration constant *)
+  cMax = 0.95 yMax;
+  cList = Subdivide[-yMax, yMax, 8];
+  Show[
+    EmptyFrame[{xMinPlot, xMaxPlot}, {-yMaxPlot, yMaxPlot},
+      AspectRatio -> Automatic,
+      FrameLabel -> {
+        Italicise["x"] // Margined @ {{0, 0}, {0, -10}},
+        Italicise["y"]
+      },
+      FrameTicksStyle -> 8,
+      ImageSize -> 0.85 * 0.5 ImageSizeTextWidthBeamer,
+      LabelStyle -> 10
+    ],
+    (* Unphysical region *)
+    Graphics @ {BoundaryTracingStyle["Unphysical"],
+      Rectangle[
+        {Way[xMinPlot, xMin, -1], -2 yMaxPlot},
+        {xMin, +2 yMaxPlot}
+      ]
+    },
+    {}
+  ]
+] // Ex["plane-traced-boundaries-slides_unphysical.pdf"];
+
+
 (* ::Section:: *)
 (*Figure: Traced boundaries, patched (plane-traced-boundaries-patched.pdf)*)
 
@@ -1102,6 +1378,127 @@ Module[
   ] &
   // Show[#, ImageSize -> ImageSizeTextWidth] &
 ] // Ex["plane-traced-boundaries-patched.pdf"]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+ {xTerm,
+  xMin, xMax, yMin, yMax,
+  plotList,
+  plotPointsGeneral, plotPointsPatched,
+  textStyle,
+  n, cUpperList, cLowerList, xCornerList, xIntList,
+  cUpper, cLower,
+  xLeft, xRight
+ },
+  (* Critical terminal curve *)
+  xTerm = 1;
+  (* Plot range *)
+  xMin = 0.2;
+  xMax = 1.1 xTerm;
+  yMax = 0.7;
+  (* Plot points *)
+  plotPointsGeneral = 3;
+  plotPointsPatched = 2;
+  (* Styles *)
+  textStyle = Style[#, 9] &;
+  (* Build a plot for each list of corners *)
+  plotList = Table[
+    (* *)
+    n = patchedCornerNum[id];
+    cUpperList = patchedCUpperList[id];
+    cLowerList = patchedCLowerList[id];
+    xCornerList = patchedCornerXList[id];
+    xIntList = patchedIntXList[id];
+    (* Plot *)
+    Show[
+      EmptyFrame[{xMin, xMax}, {-yMax, yMax},
+        AspectRatio -> Automatic,
+        Frame -> None,
+        ImageSize -> Automatic
+      ],
+      (* General boundaries: upper-branch(i) *)
+      Table[
+        cUpper = cUpperList[[i]];
+        Plot[
+          yTraUpper[cUpper][x],
+          {x, 0, 1},
+          PlotPoints -> plotPointsGeneral,
+          PlotRange -> {-yMax, yMax},
+          PlotStyle -> BoundaryTracingStyle["Background"]
+        ]
+      , {i, n}],
+      (* General boundaries: lower-branch(i) *)
+      Table[
+        cLower = cLowerList[[i]];
+        Plot[
+          yTraLower[cLower][x],
+          {x, 0, 1},
+          PlotPoints -> plotPointsGeneral,
+          PlotRange -> {-yMax, yMax},
+          PlotStyle -> BoundaryTracingStyle["Background"]
+        ]
+      , {i, n}],
+      (* Patched portions: upper-branch(i) *)
+      Table[
+        xLeft = xCornerList[[i]];
+        xRight = If[i > 1,
+          xIntList[[i - 1]],
+          Max[xIntList]
+        ];
+        cUpper = cUpperList[[i]];
+        Plot[
+          yTraUpper[cUpper][x],
+          {x, xLeft, xRight},
+          PlotPoints -> plotPointsPatched,
+          PlotRange -> {-yMax, yMax},
+          PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+      , {i, n}],
+      (* Patched portions: lower-branch(i) *)
+      Table[
+        xLeft = xCornerList[[i]];
+        xRight = If[i < n,
+          xIntList[[i]],
+          Max[xIntList]
+        ];
+        cLower = cLowerList[[i]];
+        Plot[
+          yTraLower[cLower][x],
+          {x, xLeft, xRight},
+          PlotPoints -> plotPointsPatched,
+          PlotRange -> {-yMax, yMax},
+          PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+      , {i, n}],
+      (* Critical terminal curve *)
+      ParametricPlot[
+        {xTerm, y}, {y, -yMax, yMax},
+        PlotPoints -> 2,
+        PlotStyle -> BoundaryTracingStyle["Terminal"]
+      ],
+      Graphics @ {
+        Text[
+          Italicise["x"] == 1
+          , {1, 0}
+          , {0, 1.2}
+          , {0, 1}
+        ] // textStyle
+      },
+      {}
+    ]
+  , {id, patchedIdList}]
+  // GraphicsRow[#,
+    Spacings -> {
+      0.2 ImageSizeTextWidthBeamer,
+      Automatic
+    }
+  ] &
+  // Show[#, ImageSize -> ImageSizeTextWidthBeamer] &
+] // Ex["plane-traced-boundaries-patched-slides.pdf"];
 
 
 (* ::Section:: *)
@@ -1247,6 +1644,133 @@ Module[
 ] // Ex["plane-domains.pdf"]
 
 
+(* ::Subsubsection:: *)
+(*Version for slides*)
+
+
+Module[
+ {xTerm,
+  xMin, xMax, yMin, yMax,
+  plotPointsPatched,
+  textStyle, textStyleLabel, textStyleBracket,
+  plotList,
+  n, cUpperList, cLowerList, xCornerList, xIntList,
+  iRangeList, xBathList,
+  iMin, iMax, xBath, yBathBottom, yBathTop,
+  cUpper, cLower,
+  xLeft, xRight,
+  domainLabel,
+  dummyForTrailingCommas
+ },
+  (* Critical terminal curve *)
+  xTerm = 1;
+  (* Plot range *)
+  xMin = 0.2;
+  xMax = 1.1 xTerm;
+  yMax = 0.7;
+  (* Plot points *)
+  plotPointsPatched = 2;
+  (* Styles *)
+  textStyle = Style[#, 9] &;
+  textStyleLabel = Style[#, 10] &;
+  textStyleBracket = Style[#, 10] &;
+  (* Build a plot for each list of corners *)
+  plotList = Table[
+    (* *)
+    n = patchedCornerNum[id];
+    cUpperList = patchedCUpperList[id];
+    cLowerList = patchedCLowerList[id];
+    xCornerList = patchedCornerXList[id];
+    xIntList = patchedIntXList[id];
+    iRangeList = domainCornerRangeList[id];
+    xBathList = domainXBathList[id];
+    (* Plot *)
+    Show[
+      EmptyAxes[{xMin, xMax}, {-yMax, yMax},
+        AspectRatio -> Automatic,
+        Axes -> None,
+        ImageSize -> Automatic
+      ],
+      (* Domains *)
+      Table[
+        {iMin, iMax} = iRangeList[[j]];
+        {
+          (* Constant-temperature (Dirichlet) boundary *)
+          xBath = xBathList[[j]];
+          yBathBottom = yTraUpper[cUpperList[[iMin]]] @ xBath;
+          yBathTop = yTraLower[cLowerList[[iMax]]] @ xBath;
+          ParametricPlot[
+            {xBath, y}, {y, yBathBottom, yBathTop},
+            PlotPoints -> 2,
+            PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+          ],
+          (* Patched portions: upper-branch(i) *)
+          Table[
+            xLeft = xCornerList[[i]];
+            xRight = If[i > iMin, xIntList[[i - 1]], xBath];
+            cUpper = cUpperList[[i]];
+            Plot[
+              yTraUpper[cUpper][x],
+              {x, xLeft, xRight},
+              PlotPoints -> plotPointsPatched,
+              PlotRange -> {-yMax, yMax},
+              PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+            ]
+          , {i, iMin, iMax}],
+          (* Patched portions: lower-branch(i) *)
+          Table[
+            xLeft = xCornerList[[i]];
+            xRight = If[i < iMax, xIntList[[i]], xBath];
+            cLower = cLowerList[[i]];
+            Plot[
+              yTraLower[cLower][x],
+              {x, xLeft, xRight},
+              PlotPoints -> plotPointsPatched,
+              PlotRange -> {-yMax, yMax},
+              PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+            ]
+          , {i, iMin, iMax}]
+        }
+      , {j, Length[iRangeList]}],
+      (* Domain labels *)
+      domainLabel[str_][scaledX_, scaledY_] :=
+        Text[
+          Row @ {
+            "(" // textStyleBracket,
+            str,
+            ")" // textStyleBracket,
+          } // textStyleLabel
+          , {Way[xMin, xMax, scaledX], scaledY * yMax}
+        ];
+      Graphics @ {
+        Which[
+          id == patchedIdList[[1]],
+            domainLabel["a"][0.4, 0],
+          id == patchedIdList[[2]],
+            domainLabel["b"][0.5, 0],
+          id == patchedIdList[[3]],
+            {
+              domainLabel["c"][0.3, 0.75],
+              domainLabel["d"][0.11, 0.05],
+              domainLabel["e"][0.5, -0.62],
+              Nothing
+            },
+          True, {}
+        ]
+      },
+      {}
+    ]
+  , {id, patchedIdList}]
+  // GraphicsRow[#,
+    Spacings -> {
+      0.2 ImageSizeTextWidthBeamer,
+      Automatic
+    }
+  ] &
+  // Show[#, ImageSize -> ImageSizeTextWidthBeamer] &
+] // Ex["plane-domains-slides.pdf"];
+
+
 (* ::Subsection:: *)
 (*Legend*)
 
@@ -1367,6 +1891,105 @@ Module[
 ] // Ex["plane-self-viewing-ratio.pdf"]
 
 
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    labelPlacementFromInterval, intervalList,
+    numPoints, data,
+    x1, x2, xValues,
+    textStyle, textStyleBracket,
+    intervalText,
+    proportion, offset, xLabel, rLabel,
+    dummyForTrailingCommas
+  },
+  (* List of intervals {x1, x2} to plot the ratio for *)
+  labelPlacementFromInterval = Association[
+    {0, 0.3} -> {0.8, {1.35, 0}},
+    {0.2, 0.5} -> {0.1, {-1.2, -0.7}},
+    {0.5, 0.8} -> {0, {-0.55, -0.9}},
+    {0.7, 1} -> {0.3, {0, -1.4}},
+    {0.3, 0.4} -> {1, {-1, 0.6}},
+    {0.5, 0.6} -> {0.7, {-0.8, 0.8}},
+    {0.65, 0.75} -> {0.7, {-1, 0.65}},
+    {0.8, 0.9} -> {0.8, {-1, 0.6}},
+    Nothing
+  ];
+  intervalList = Keys[labelPlacementFromInterval];
+  (* Number of points for sampling *)
+  numPoints = 50;
+  (* Compute data points to plot *)
+  Table[
+    {x1, x2} = interval;
+    xValues = Subdivide[x1, x2, numPoints];
+    If[x1 == 0,
+      xValues = Join[
+        Subdivide[x1, xValues[[4]], 20],
+        xValues[[5 ;;]]
+      ];
+    ];
+    If[x2 == 1,
+      xValues = Join[
+        xValues[[;; -5]],
+        Subdivide[xValues[[-4]], x2, 20]
+      ];
+    ];
+    data[interval] =
+      Cases[
+        Table[{x, boundaryRatio[x1, x2][x]}, {x, xValues}],
+        {_?NumericQ, _?NumericQ}
+      ] // Quiet;
+    , {interval, intervalList}
+  ];
+  (* Text style *)
+  textStyle = Style[#, 6] &;
+  textStyleBracket = Style[#, 6] &;
+  intervalText[interval_] :=
+    Text[
+      {x1, x2} = interval;
+      {proportion, offset} = labelPlacementFromInterval[interval];
+      Row @ {
+        "(" // textStyleBracket,
+        "\[NegativeVeryThinSpace]",
+        x1,
+        ",\[ThinSpace]",
+        x2,
+        ")" // textStyleBracket
+      } // textStyle
+      ,
+        xLabel = Way[x1, x2, proportion];
+        rLabel = Interpolation[data[interval], xLabel];
+        {xLabel, Log[rLabel]}
+      , offset
+    ];
+  (* Make plot *)
+  ListLogPlot[
+    Table[data[interval], {interval, intervalList}]
+    , AxesLabel -> {
+        Italicise["x"] // Margined @ {{0, 1}, {5, 0}},
+        Italicise["R"]
+      }
+    , Epilog -> {
+        {
+          BoundaryTracingStyle["Contour"],
+          Line @ {{0, #}, {1, #}} & [1/100 // Log]
+        },
+        Table[intervalText[interval], {interval, intervalList}],
+        {}
+      }
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer
+    , Joined -> True
+    , LabelStyle -> 10
+    , PlotRange -> {{0, 1}, {All, 10}}
+    , PlotRangeClipping -> False
+    , PlotStyle -> SlidesStyle["Boundary"]
+    , TicksStyle -> 7
+  ]
+] // Ex["plane-self-viewing-ratio-slides.pdf"];
+
+
 (* ::Section:: *)
 (*Figure: example fin dimensions (plane-fin-dimensions)*)
 
@@ -1465,8 +2088,108 @@ Module[
 ] // Ex["plane-fin-dimensions.pdf"]
 
 
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    x1, x2, y, y2,
+    dimensionMarkerStyle,
+    lengthMarkerY, thicknessMarkerX,
+    textStyle, textStyleBracket,
+    dummyForTrailingCommas
+  },
+  (* Abbreviations *)
+  {x1, x2} = {exampleX1, exampleX2};
+  y = exampleYTraced;
+  y2 = exampleY2;
+  (* Dimension markers *)
+  dimensionMarkerStyle = Arrowheads @ {-Small, Small};
+  lengthMarkerY = -1.5 y2;
+  thicknessMarkerX = Way[x1, x2, 1.045];
+  textStyle = Style[#, 8] &;
+  textStyleBracket = Style[#, 8] &;
+  (* Make diagram *)
+  Show[
+    (* Constant-temperature boundary *)
+    Graphics @ {
+      BoundaryTracingStyle["Contour"],
+      SlidesStyle["Source"],
+      Line @ {{x2, -y2}, {x2, +y2}}
+    },
+    (* Radiation boundaries *)
+    Plot[{-1, 1} y[x], {x, x1, x2}
+      , PlotPoints -> 2
+      , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+    ],
+    (* Length L marker *)
+    Graphics @ {dimensionMarkerStyle,
+      Arrow @ {
+        {x1, lengthMarkerY},
+        {x2, lengthMarkerY}
+      },
+      Text[
+        Italicise["L"] // textStyle
+        , {Way[x1, x2], lengthMarkerY}
+        , {0, 1}
+      ]
+    },
+    (* Thickness H marker *)
+    Graphics @ {dimensionMarkerStyle,
+      Arrow @ {
+        {thicknessMarkerX, -y2},
+        {thicknessMarkerX, y2}
+      },
+      Text[
+        Italicise["H"] // textStyle
+        , {thicknessMarkerX, 0}
+        , {-1.85, -0.15}
+      ]
+    },
+    (* Tip coordinate *)
+    Graphics @ {
+      Text[
+        Row @ {
+          "(" // textStyleBracket,
+          "\[NegativeVeryThinSpace]",
+          Subscript[Italicise["x"], 1],
+          ",\[ThinSpace]",
+          0,
+          ")" // textStyleBracket
+        } // textStyle
+        , {x1, 0}
+        , {1.5, -0.15}
+      ]
+    },
+    (* Base coordinate *)
+    Graphics @ {
+      Text[
+        Row @ {
+          "(" // textStyleBracket,
+          "\[NegativeVeryThinSpace]",
+          Subscript[Italicise["x"], 2],
+          ",\[VeryThinSpace]\[VeryThinSpace]",
+          Subscript[Italicise["y"], 2],
+          ")" // textStyleBracket
+        } // textStyle
+        , {x2, y2}
+        , {0, -1.4}
+      ]
+    },
+    {}
+    , AspectRatio -> Automatic
+    , Axes -> False
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer
+    , PlotRange -> All
+    , PlotRangeClipping -> False
+    , PlotRangePadding -> Automatic
+  ]
+] // Ex["plane-fin-dimensions-slides.pdf"];
+
+
 (* ::Section:: *)
-(*Figure: example fin base temperature (plane-fin-base-temperature)*)
+(*Figure: example fin temperature (plane-fin-temperature)*)
 
 
 Module[{textStyle},
@@ -1508,6 +2231,53 @@ Plot[
   , TicksStyle -> LabelSize["Tick"]
 ]
 ] // Ex["plane-fin-temperature.pdf"]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[{textStyle},
+textStyle = Style[#, 10] &;
+Plot[
+  {exampleT1[l], exampleT2[l]} - celsiusOffset
+  , {l, 0, 4}
+  , AspectRatio -> 0.8
+  , AxesLabel -> {
+      (* L / m *)
+      SeparatedRow["Thin"][
+        Italicise["L"],
+        Style["/", Magnification -> 1],
+        "m"
+      ] // Margined @ {{-2, 0}, {2, 0}},
+      (* t / \[Degree]C *)
+      SeparatedRow["Thin"][
+        Italicise["t\[ThinSpace]"],
+        Style["/", Magnification -> 1],
+        SeparatedRow[][Style["\[Degree]", Magnification -> 1], "C"]
+      ] // Margined @ {{0, 0}, {-10, -5}}
+    }
+  , Epilog -> {
+      Text[
+        "base" // textStyle
+        , {#, exampleT2[#] - celsiusOffset} & [1]
+        , {-1, -1}
+      ],
+      Text[
+        "tip" // textStyle
+        , {#, exampleT1[#] - celsiusOffset} & [0.9]
+        , {1.3, 0.4}
+      ],
+      {}
+    }
+  , ImageSize -> 0.5 ImageSizeTextWidthBeamer
+  , LabelStyle -> 10
+  , PlotLabel -> "Aluminium"
+  , PlotStyle -> Black
+  , PlotPoints -> 3
+  , TicksStyle -> 8
+]
+] // Ex["plane-fin-temperature-slides.pdf"];
 
 
 (* ::Section:: *)
@@ -1824,3 +2594,202 @@ Module[
     ] // Ex["plane-directional-dependence-geometry-strip.pdf"]
   }
 ]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    x1, x2, y, y2,
+    xFinCentre,
+    yDer,
+    yDerMaxFin, phiMaxFin,
+    finDependence, finConstant,
+    finDependenceNormalised,
+    yMaxStrip,
+    stripDependence, stripConstant, stripDependenceNormalised,
+    rho,
+    gammaCorrect,
+    dependenceColourFunction,
+    dependenceThicknessFunction, replaceData,
+    thicken,
+    commonPlot,
+      rMinDirectionReference, rMaxDirectionReference,
+      rMidDirectionReference,
+      phiMarker,
+      textStyle,
+    directionalOptions,
+    radiationArrowheadSize,
+    radiationArrowSize, radiationArrowClearance,
+    radiationXValuesFin, radiationYValuesStrip,
+    dummyForTrailingCommas
+  },
+  (* Fin *)
+  {x1, x2} = {exampleX1, exampleX2};
+  y = exampleYTraced;
+  y2 = exampleY2;
+  xFinCentre = Way[x1, x2];
+  yDer = -yTraDer[#] &;
+  yDerMaxFin = yDer[x2];
+  phiMaxFin = Pi - ArcTan[yDerMaxFin];
+  finDependence[phi_] := directionalDependence[x1, x2] @ Abs[phi];
+  finConstant = NIntegrate[finDependence[phi], {phi, -phiMaxFin, phiMaxFin}];
+  finDependenceNormalised[phi_] := finDependence[phi] / finConstant;
+  (* Strip *)
+  yMaxStrip = 1.5 y2;
+  stripDependence[phi_] := Cos[phi];
+  stripConstant = Integrate[stripDependence[phi], {phi, -Pi/2, Pi/2}];
+  stripDependenceNormalised[phi_] := stripDependence[phi] / stripConstant;
+  (* Cylinder at infinity *)
+  rho = 0.97 (x2 - x1);
+  (* Dependence colouring *)
+  gammaCorrect[level_] := Clip[level, {0, 1}] ^ 0.3;
+  dependenceColourFunction[dependence_, phi_, {minPhi_, maxPhi_}] :=
+    GrayLevel @ gammaCorrect[1 - Rescale[dependence[phi], dependence /@ {minPhi, maxPhi}]];
+  (* Dependence thickening *)
+  (*
+    `thicken` below is a modified version of Kuba's `thick$color` function
+    in <https://mathematica.stackexchange.com/a/28207>.
+    Re-use permission granted in comments, see archived version:
+    <https://web.archive.org/web/20210315151008/https://mathematica.stackexchange.com/questions/28202/vary-the-thickness-of-a-plotted-function/>
+  *)
+  dependenceThicknessFunction[dependence_][x_, y_] := dependence[Abs @ ArcTan[-x, y]];
+  thicken[referenceThickness_][dependence_] := ReplaceAll[
+    GraphicsComplex[points_List, data_List, options : OptionsPattern[__]] :>
+    GraphicsComplex[
+      points,
+      data /. {
+       Line[linePoints_List, OptionsPattern[]] :>
+         Sequence @@ (
+           {
+             AbsoluteThickness[
+               referenceThickness *
+               dependenceThicknessFunction[dependence] @@
+                 (Mean /@ Transpose @ points[[#]])
+             ],
+             Line[#, VertexColors -> Automatic]
+           } & /@
+             Partition[linePoints, 2, 1]
+         )
+      },
+      options
+    ]
+  ];
+  (* Make plots *)
+  rMinDirectionReference = 1.15 rho;
+  rMaxDirectionReference = 1.25 rho;
+  rMidDirectionReference = Way[rMinDirectionReference, rMaxDirectionReference];
+  phiMarker = 17 Degree;
+  textStyle = Style[#, 10] &;
+  commonPlot = EmptyFrame[{-rho, rho}, {-rho, rho}
+    , Epilog -> {
+        (* Reference direction (minus x) *)
+        Line @ {{-rMinDirectionReference, 0}, {-rMaxDirectionReference, 0}},
+        (* Arc *)
+        Circle[{0, 0}, rMidDirectionReference, {Pi, Pi - phiMarker}],
+        {Arrowheads[0.04],
+          Arrow @ Table[
+            XYPolar[rMidDirectionReference, Pi - phi]
+            , {phi, Subdivide[0.7, 1.1, 2] phiMarker}
+          ]
+        },
+        (* Label *)
+        Text[
+          "\[CurlyPhi]" // textStyle
+          , XYPolar[rMidDirectionReference, Pi - phiMarker]
+          , {-0.5, -1.7}
+        ],
+        {}
+      }
+    , Frame -> None
+    , ImageSize -> 0.8 * 0.5 ImageSizeTextWidthBeamer
+    , LabelStyle -> Directive[11, SlidesStyle["Boundary"]]
+    , PlotRangePadding -> {Scaled /@ {0.15, 0.03}, Scaled[0.03]}
+  ];
+  directionalOptions = {Nothing
+    , ColorFunctionScaling -> False
+    , PlotPoints -> 3
+  };
+  radiationArrowheadSize = 0.025;
+  radiationArrowSize = 0.25 (x2 - x1);
+  radiationArrowClearance = 0.35 radiationArrowSize;
+  radiationXValuesFin = Way[x1, x2, Subdivide[0.1, 0.9, 3]];
+  radiationYValuesStrip = {-1, 1} 0.7 yMaxStrip;
+  {
+    (* Fin *)
+    Show[
+      commonPlot,
+      (* Directional dependence *)
+      ParametricPlot[
+        XYPolar[rho, Pi - phi]
+        , {phi, -phiMaxFin, phiMaxFin}
+        , ColorFunction -> Function[{x, y, phi},
+            dependenceColourFunction[
+              finDependenceNormalised, phi,
+              {phiMaxFin, Pi/2}
+            ]
+          ]
+        , directionalOptions // Evaluate
+      ] // thicken[13][finDependenceNormalised],
+      (* Radiation boundaries *)
+      ParametricPlot[
+        {{x - xFinCentre, -y[x]}, {x - xFinCentre, y[x]}}
+        , {x, x1, x2}
+        , PlotPoints -> 2
+        , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+      ],
+      (* Radiation arrows *)
+      Graphics @ {Arrowheads[radiationArrowheadSize],
+        Table[
+          SquigglyArrow[
+            {x - xFinCentre, sign * y[x]} + XYPolar[radiationArrowClearance, #],
+            #,
+            radiationArrowSize
+          ] & [
+            sign * (ArcTan[yDer[x]] + Pi/2)
+          ]
+          , {x, radiationXValuesFin}
+          , {sign, {-1, 1}}
+        ]
+      },
+      {}
+      , PlotLabel -> ("Fin" // Margined @ {{0, 0}, {5, 0}})
+    ] // Ex["plane-directional-dependence-geometry-fin-slides.pdf"]
+    ,
+    (* Strip *)
+    Show[
+      commonPlot,
+      (* Directional dependence *)
+      ParametricPlot[
+        XYPolar[rho, Pi - phi]
+        , {phi, -Pi/2, Pi/2}
+        , ColorFunction -> Function[{x, y, phi},
+            dependenceColourFunction[
+              stripDependenceNormalised, phi,
+              {Pi/2, 0}
+            ]
+          ]
+        , directionalOptions // Evaluate
+      ] // thicken[8][stripDependenceNormalised],
+      (* Radiation strip *)
+      Graphics @ {Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]],
+        Line @ {{0, -yMaxStrip}, {0, +yMaxStrip}}
+      },
+      (* Radiation arrows *)
+      Graphics @ {Arrowheads[1.15 radiationArrowheadSize],
+        Table[
+          SquigglyArrow[
+            {-radiationArrowClearance, y},
+            -Pi,
+            1.15 radiationArrowSize
+          ]
+          , {y, radiationYValuesStrip}
+        ]
+      },
+      {}
+      , PlotLabel -> ("Strip" // Margined @ {{0, 0}, {5, 0}})
+    ] // Ex["plane-directional-dependence-geometry-strip-slides.pdf"]
+  }
+];

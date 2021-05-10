@@ -37,8 +37,10 @@ ClearAll["FigureStyles`*`*"];
   GeneralStyle,
   BoundaryTracingStyle,
   ImageSizeTextWidth,
+  ImageSizeTextWidthBeamer,
   LabelSize,
   SquigglyArrow,
+  SlidesStyle,
   {}
 };
 
@@ -138,6 +140,13 @@ ImageSizeTextWidth =
 
 
 (* ::Subsubsection:: *)
+(*ImageSizeTextWidthBeamer*)
+
+
+ImageSizeTextWidthBeamer = 10.8 Conway`ImageSizeCentimetre;
+
+
+(* ::Subsubsection:: *)
 (*LabelSize*)
 
 
@@ -189,6 +198,19 @@ SquigglyArrow[{xBase_, yBase_}, phi_: 0, size_: 1] :=
         // TranslationTransform @ {xBase, yBase}
     ]
   ];
+
+
+(* ::Subsubsection:: *)
+(*SlidesStyle*)
+
+
+SlidesStyle[type_String : Automatic] := Association[
+  "Boundary" -> RGBColor["#9400D3"],
+  "InteriorRegion" -> RGBColor["#DEF0FF"],
+  "Source" -> Red,
+  "SourceRegion" -> RGBColor["#FFD9D9"],
+  Automatic -> Automatic
+][type];
 
 
 (* ::Subsubsection:: *)

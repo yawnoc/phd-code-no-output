@@ -115,6 +115,103 @@ Module[
 ] // Ex["radiation-conduction-bvp.pdf"]
 
 
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    conductionA, conductionB, conductionPhi,
+    conductionXY, conductionNormalPhi,
+    bathX, bathY, bathA, bathB,
+    textStyle, textStyleGreek,
+    radiationArrowClearanceFactor,
+    dummyForTrailingCommas
+  },
+  (* Conduction ellipse *)
+  {conductionA, conductionB} = {8, 5};
+  conductionPhi = 20 Degree;
+  (* Geometry *)
+  (* (see <https://math.stackexchange.com/a/990013> for angle of normal) *)
+  conductionXY[ang_] := {conductionA Cos[ang], conductionB Sin[ang]};
+  conductionNormalPhi[ang_] := ArcTan[conductionB Cos[ang], conductionA Sin[ang]];
+  (* Heat bath ellipse *)
+  {bathX, bathY} = {-3, -2};
+  {bathA, bathB} = {2.5, 1.5};
+  (* Diagram *)
+  textStyle = Style[#, 10] &;
+  textStyleGreek = Style[#, 10] &;
+  Show[
+    (* Conduction ellipse *)
+    Graphics @ {
+      EdgeForm @ Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]],
+      FaceForm @ SlidesStyle["InteriorRegion"],
+      Disk[{0, 0}, {conductionA, conductionB}]
+        // Rotate[#, conductionPhi] &
+    },
+    Graphics @ {
+      Text[
+        SeparatedRow["\[VeryThinSpace]" // textStyle] @@ {
+          "conduction" // textStyle,
+          Italicise["\[CapitalOmega]"] // textStyleGreek
+        }
+        , -{0.3 bathX, 0.8bathY}
+      ]
+    },
+    (* Radiation arrows *)
+    radiationArrowClearanceFactor = 1.1;
+    Graphics @ {Arrowheads[0.03],
+      Table[
+        SquigglyArrow[
+          radiationArrowClearanceFactor * conductionXY[ang]
+          , conductionNormalPhi[ang]
+          , 2.5
+        ]
+        , {ang, Subdivide[0, 2 Pi, 8]}
+      ]
+        // Rotate[#, conductionPhi] &
+    },
+    Graphics @ {
+      Text[
+        Column[
+          {
+            "radiation" // textStyle,
+            SeparatedRow[
+              If[$OperatingSystem == "Windows",
+                StringRepeat["\[NegativeThickSpace]", 9] <> "\[NegativeVeryThinSpace]" // textStyle,
+                ""
+              ]
+            ] @@ {
+              "\[PartialD]" // textStyleGreek,
+              Italicise["\[CapitalOmega]"] // textStyleGreek
+            }
+          }
+          , Alignment -> Right
+          , Spacings -> 0
+        ]
+        , conductionXY[4.8/8 Pi] // RotationTransform[conductionPhi]
+        , {1.1, -1}
+      ]
+    },
+    (* Heat bath ellipse *)
+    Graphics @ {
+      FaceForm @ SlidesStyle["SourceRegion"],
+      EdgeForm @ SlidesStyle["Source"],
+      Disk[{bathX, bathY}, {bathA, bathB}]
+    },
+    Graphics @ {
+      Text[
+        "heat" // textStyle
+        , {bathX, bathY}
+        , {0, 0}
+      ]
+    },
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer
+  ]
+] // Ex["radiation-conduction-bvp-slides.pdf"];
+
+
 (* ::Section:: *)
 (*Figure: self viewing radiation elements (self-viewing-radiation-elements)*)
 
@@ -524,3 +621,204 @@ Module[
     , ImageSize -> 0.55 ImageSizeTextWidth
   ]
 ] // Ex["self-viewing-radiation-elements-fin.pdf"]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    xMaxFin, yMaxFin, zMinFin,
+    yFinScaled, yFin,
+    xMinAxis,
+    xMaxAxis, yMaxAxis, zMinAxis, zMaxAxis,
+    xElement, yElement, zElement,
+      dx, dy, dz,
+    xStar, yStar, zStar,
+      dxStar, dyStar, dzStar,
+    normalVectorLength, normalVector,
+      normalBase, normalTip,
+      normalStarBase, normalStarTip,
+    centre, canvasNormal, canvasPoint, eye, verticalVector, project,
+    axisStyle, radiationStyle, sourceStyle,
+    elementStyle, positionStyle, normalVectorStyle,
+    differentialStyle, guideStyle,
+    starred, textStyle,
+    dummyForTrailingCommas
+  },
+  (* Fin *)
+  {xMaxFin, yMaxFin, zMinFin} = {1.6, 0.48, -2.3};
+  yFinScaled[m_][x_] := m x + (1-m) x^2;
+  yFin[x_] := yMaxFin * yFinScaled[0.13][x / xMaxFin];
+  (* Axes *)
+  xMinAxis = -0.12 xMaxFin;
+  xMaxAxis = 1.25 xMaxFin;
+  yMaxAxis = 1.3 yMaxFin;
+  zMinAxis = Way[zMinFin, 0, 0];
+  zMaxAxis = Way[zMinFin, 0, +1.15];
+  (* Non-starred element *)
+  {xElement, zElement} = {0.13 xMaxFin, 0.13 zMinFin};
+  yElement = yFin[xElement];
+  dx = 0.16 xMaxFin;
+  dz = -1.3 dx;
+  dy = yFin[xElement + dx] - yFin[xElement];
+  (* Starred element *)
+  {xStar, zStar} = {0.64 xMaxFin, 0.45 zMinFin};
+  yStar = yFin[xStar];
+  dxStar = 1.15 dx;
+  dzStar = dz;
+  dyStar = yFin[xStar + dxStar] - yFin[xStar];
+  (* Normal vectors *)
+  normalVectorLength = 1.5 yMaxFin;
+  normalVector[{x_, y_, z_}, dx_] :=
+    normalVectorLength * Normalize @ {-yFin'[x + dx/2], 1, 0};
+  normalBase = {xElement, yElement, zElement} + 1/2 {dx, dy, dz};
+  normalTip = normalBase + normalVector[normalBase, dx];
+  normalStarBase = {xStar, yStar, zStar} + 1/2 {dxStar, dyStar, dzStar};
+  normalStarTip = normalStarBase + normalVector[normalStarBase, dxStar];
+  (* Perspective geometry *)
+  centre = 1/2 {xMaxFin, yMaxFin, zMinFin};
+  canvasNormal = {0.36, 0.5, 1};
+  canvasPoint = centre + canvasNormal;
+  eye = centre + 20 canvasNormal;
+  verticalVector = {0, 1, 0};
+  project[point_] :=
+    OnePointPerspective[2][eye, canvasNormal, canvasPoint, verticalVector][point];
+  (* Plotting styles *)
+  axisStyle = Darker[Gray];
+  radiationStyle = Directive[SlidesStyle["Boundary"], Thickness[Medium]];
+  sourceStyle = Directive[SlidesStyle["Source"], Thickness[Medium]];
+  elementStyle = Directive[
+    FaceForm[None],
+    EdgeForm @ SlidesStyle["Boundary"],
+    SlidesStyle["Boundary"]
+  ];
+  normalVectorStyle = Directive[Thick, Arrowheads[0.08]];
+  differentialStyle = Directive[CapForm["Round"], Thickness[0.015]];
+  guideStyle = Directive[Black, Thickness[Medium], Dotted];
+  (* Text functions *)
+  starred[expr_] := Superscript[expr, "\[NegativeVeryThinSpace]\[FivePointedStar]"];
+  textStyle = Style[#, 8] &;
+  (* Make scene *)
+  Show[
+    (* Axes *)
+    Graphics @ {axisStyle,
+      Line[project /@ {{xMinAxis, 0, 0}, {xMaxAxis, 0, 0}}],
+        Text[
+          Italicise["x"] // textStyle
+          , project @ {xMaxAxis, 0, 0}
+          , {-2, -0.1}
+        ],
+      Line[project /@ {{xMinAxis, 0, 0}, {xMinAxis, yMaxAxis, 0}}],
+        Text[
+          Italicise["y"] // textStyle
+          , project @ {xMinAxis, yMaxAxis, 0}
+          , {0, -1.25}
+        ],
+      Line[project /@ {{xMinAxis, 0, zMinAxis}, {xMinAxis, 0, zMaxAxis}}],
+        Text[
+          Italicise["z"] // textStyle
+          , project @ {xMinAxis, 0, zMaxAxis}
+          , {2, 0.3}
+        ],
+      {}
+    },
+    (* x-axis marks *)
+    Graphics @ {axisStyle,
+      Text[
+        Subscript[Italicise["x"], 1] // textStyle
+        , project @ {0, 0, 0}
+        , {0.3, 0.65}
+      ],
+      Text[
+        Subscript[Italicise["x"], 2] // textStyle
+        , project @ {xMaxFin, 0, 0}
+        , {1.4, 0.4}
+      ],
+      {}
+    },
+    (* Fin *)
+    {
+      (* Radiation edges *)
+      ParametricPlot[
+        project /@ {
+          {x, yFin[x], 0}, (* near upper edge *)
+          {x, -yFin[x], 0}, (* near lower edge *)
+          {x, yFin[x], zMinFin}, (* near far edge *)
+          Nothing
+        }
+        , {x, 0, xMaxFin}
+        , PlotPoints -> 2
+        , PlotStyle -> radiationStyle
+      ],
+      Graphics @ {radiationStyle,
+        Line[project /@ {{0, 0, 0}, {0, 0, zMinFin}}]
+      },
+      (* Source edges *)
+      Graphics @ {sourceStyle,
+        Line[project /@ {
+          {xMaxFin, yMaxFin, 0},
+          {xMaxFin, -yMaxFin, 0},
+          {xMaxFin, -yMaxFin, zMinFin},
+          {xMaxFin, yMaxFin, zMinFin},
+          {xMaxFin, yMaxFin, 0}
+        }],
+      },
+      {}
+    },
+    (* Non-starred element *)
+    Graphics @ {elementStyle,
+      Polygon[project /@ {
+        {xElement, yElement, zElement},
+        {xElement + dx, yElement + dy, zElement},
+        {xElement + dx, yElement + dy, zElement + dz},
+        {xElement, yElement, zElement + dz},
+        Nothing
+      }],
+      Text[
+        Row @ {"d", Italicise["A"]} // textStyle
+        , project[normalBase]
+        , {-3.25, -0.5}
+      ],
+      {}
+    },
+    (* Starred element *)
+    Graphics @ {elementStyle,
+      Polygon[project /@ {
+        {xStar, yStar, zStar},
+        {xStar + dxStar, yStar + dyStar, zStar},
+        {xStar + dxStar, yStar + dyStar, zStar + dzStar},
+        {xStar, yStar, zStar + dzStar},
+        Nothing
+      }],
+      Text[
+        Row @ {"d", Italicise["A"] // starred} // textStyle
+        , project[normalStarBase]
+        , {1.8, -0.4}
+      ],
+      {}
+    },
+    (* Normal vectors *)
+    Graphics @ {
+      normalVectorStyle, Arrow[project /@ {normalBase, normalTip}],
+      Text[
+        Embolden["n"] // textStyle
+        , project[normalTip]
+        , {1.8, -0.1}
+      ],
+      {}
+    },
+    Graphics @ {
+      normalVectorStyle, Arrow[project /@ {normalStarBase, normalStarTip}],
+      Text[
+        Embolden["n"] // starred // textStyle
+        , project[normalStarTip]
+        , {-2.1, 0}
+      ],
+      {}
+    },
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer
+  ]
+] // Ex["self-viewing-radiation-elements-fin-slides.pdf"];
