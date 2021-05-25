@@ -914,7 +914,7 @@ Module[
   legendCurves =
     CurveLegend[
       BoundaryTracingStyle /@ {"ContourPlain", "Terminal"},
-      {Row @ {Italicise["T"], "\[Hyphen]contour"}, "terminal curve"}
+      {Row @ {Italicise["U"], "\[Hyphen]contour"}, "terminal curve"}
       , LabelStyle -> legendLabelStyle
     ];
   legendRegions =

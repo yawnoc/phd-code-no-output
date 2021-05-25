@@ -4426,7 +4426,13 @@ Module[
         Table[
           {
             gpd * Degree,
-            SeparatedRow["VeryThin"][gpd, Style["\[Degree]", Magnification -> 1.2]]
+            SeparatedRow[][
+              gpd,
+              AdjustmentBox[
+                Style["\[Degree]", Magnification -> 1.2]
+                , BoxBaselineShift -> -0.1
+              ]
+            ] // DisplayForm
           }
           , {gpd, Range[0, gpdTracingIndentations + 5, 10]}
         ]

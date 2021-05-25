@@ -4672,7 +4672,15 @@ Module[
   textStyleLabel = Style[#, LabelSize["Label"]] & @* LaTeXStyle;
   textStyleContour = Style[#, LabelSize["Label"] - 2] & @* LaTeXStyle;
   uContourText[value_] :=
-    Italicise["u"] == SeparatedRow["VeryThin"][value / Degree, Magnify["\[Degree]", 1.2]]
+    Italicise["u"] ==
+      SeparatedRow["VeryThin"][
+        value / Degree,
+        AdjustmentBox[
+          Magnify["\[Degree]", 1.1]
+          , BoxBaselineShift -> -0.1
+        ]
+      ]
+      // DisplayForm
       // textStyleContour;
   vContourText[value_] := Italicise["v"] == value // textStyleContour;
   basisVectorText[coord_] := Subscript[Embolden["a"], Italicise[coord]] // textStyleLabel;

@@ -5892,6 +5892,7 @@ Module[
       xViewLabel, yViewLabel,
       y1Label, y2Label,
     tangentStyle, goodStyle, selfStyle, rayArrowStyle,
+    pointStyle,
     yTickLength, yTick,
     markLength, localPositionMark, localPositionLabel,
     xa, ya, xb, yb, xc, yc,
@@ -5939,9 +5940,10 @@ Module[
   y2Label = Subscript[Italicise["y"], "\[VeryThinSpace]2"];
   (* Plot styles *)
   tangentStyle = Directive[Thickness[Small], GeneralStyle["Dashed"]];
-  goodStyle = Directive[Black, AbsoluteThickness[3], CapForm["Butt"]];
-  selfStyle = Directive[GrayLevel[0.7], AbsoluteThickness[4], CapForm["Butt"]];
+  goodStyle = Directive[Black, GeneralStyle["Thick"], CapForm["Butt"]];
+  selfStyle = Directive[GrayLevel[0.7], GeneralStyle["Thick"], CapForm["Butt"]];
   rayArrowStyle[p_] := Arrowheads @ {{0.07, p}};
+  pointStyle = PointSize[0.05];
   yTickLength = (xEnd - xStart) / 25;
   yTick[y_, xStart_: xStraight] := {
     If[xStart < xStraight,
@@ -5981,7 +5983,7 @@ Module[
         ]
       },
       (* Uppermost tip *)
-      Graphics @ {GeneralStyle["Point"],
+      Graphics @ {pointStyle,
         {endStyle, Point @ {xEnd, yEnd}},
         Text[
           coordinatePairLabel[
@@ -5994,22 +5996,22 @@ Module[
         {}
       },
       (* Point of inflection *)
-      Graphics @ {GeneralStyle["Point"],
+      Graphics @ {pointStyle,
         {inflectionStyle, Point @ {xInflection, yInflection}},
         Text[
           coordinatePairLabel[xInflectionLabel, yInflectionLabel]
           , {xInflection, yInflection}
-          , {-1.35, 0.4}
+          , {-1.25, 0.5}
         ],
         {}
       },
       (* Lowest visible point (self-viewing extremity) *)
-      Graphics @ {GeneralStyle["Point"],
+      Graphics @ {pointStyle,
         Point @ {xView, yView},
         Text[
           coordinatePairLabel[xViewLabel, yViewLabel]
           , {xView, yView}
-          , {-1.3, 0.25}
+          , {-1.25, 0.25}
         ],
         {}
       },

@@ -2208,7 +2208,13 @@ Plot[
       SeparatedRow["VeryThin"][
         Italicise["t"],
         Style["/", Magnification -> 1.25],
-        SeparatedRow[][Style["\[Degree]", Magnification -> 1.25], "C"]
+        SeparatedRow["VeryThin"][
+          AdjustmentBox[
+            Style["\[Degree]", Magnification -> 1.2]
+            , BoxBaselineShift -> -0.2
+          ],
+          "C"
+        ] // DisplayForm
       ] // Margined @ {{0, 0}, {-5, -5}}
     }
   , Epilog -> {
@@ -2358,7 +2364,14 @@ Module[
     Table[
       {
         gpd * Degree,
-        SeparatedRow["VeryThin"][gpd, Style["\[Degree]", Magnification -> 1.2]]
+        SeparatedRow["VeryThin"][
+          gpd,
+          AdjustmentBox[
+            Style["\[Degree]", Magnification -> 1.2]
+            , BoxBaselineShift -> -0.1
+          ]
+        ]
+          // DisplayForm
           // Margined @ {{0, 0}, {0, -7}}
       }
       , {gpd, -180, 180, 90}

@@ -1644,7 +1644,10 @@ Module[
             XYPolar[rMax + tickLengthMajor, phi]
           },
           Text[
-            SeparatedRow["VeryThin"][phi / Degree, Magnify["\[Degree]", 1.2]] // tickTextStyle
+            SeparatedRow[""][
+              phi / Degree,
+              AdjustmentBox[Magnify["\[Degree]", 1.2], BoxBaselineShift -> -0.1]
+            ] // tickTextStyle // DisplayForm
             , XYPolar[rMax + 5.5 tickLengthMajor, phi]
             , Which[
                 phi == 0, {0.3, -0.15},

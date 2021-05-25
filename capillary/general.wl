@@ -61,7 +61,7 @@ Module[
   Show[
     EmptyFrame[{xMin, xMax}, {tStart, tEnd}
       , Frame -> None
-      , ImageSize -> 0.6 ImageSizeTextWidth
+      , ImageSize -> 0.55 ImageSizeTextWidth
       , PlotRange -> All
       , PlotRangePadding -> {Automatic, Scaled[0.13]}
     ],
@@ -106,7 +106,7 @@ Module[
       Text[
         Italicise["\[CapitalOmega]"] // textStyleGreek
         , {Way[xMin - wallThickness/2, xMax], tMin}
-        , If[$OperatingSystem == "Windows", {0, 0.225}, {0.8}]
+        , If[$OperatingSystem == "Windows", {0, 0.23}, {0.8}]
       ]
     },
     (* Outward normal *)
@@ -146,7 +146,7 @@ Module[
           Italicise["\[CapitalOmega]"] // textStyleGreek
         }
         , {xMin - wallThickness/2, tMin}
-        , If[$OperatingSystem == "Windows", {0, 0.9}, {0, 0.7}]
+        , If[$OperatingSystem == "Windows", {0.07, 0.9}, {0, 0.7}]
       ]
     },
     (* Air *)

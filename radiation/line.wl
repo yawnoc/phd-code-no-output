@@ -1903,7 +1903,7 @@ Module[
   legendCurves =
     CurveLegend[
       plotStyles,
-      Row @ {rIt} == Subscript[rIt, #] &
+      Row @ {rIt, "\[VeryThinSpace]"} == Subscript[rIt, #] &
         /@ {"\[VeryThinSpace]\[VeryThinSpace]\[Sharp]", "\[VeryThinSpace]\[VeryThinSpace]\[VeryThinSpace]\[Flat]"}
       , LabelStyle -> legendLabelStyleCurves
     ];

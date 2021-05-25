@@ -1185,7 +1185,13 @@ Module[
         Table[
           {
             phipd * Degree,
-            SeparatedRow["VeryThin"][phipd, Style["\[Degree]", Magnification -> 1.2]]
+            SeparatedRow[][
+              phipd,
+              AdjustmentBox[
+                Style["\[Degree]", Magnification -> 1.2]
+                , BoxBaselineShift -> -0.1
+              ]
+            ] // DisplayForm
           }
           , {phipd, Subdivide[-apd, apd, 4]}
         ]
