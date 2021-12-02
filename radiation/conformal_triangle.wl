@@ -791,6 +791,100 @@ Module[
 ] // Ex["conformal_triangle-grid-zeta-space.pdf"]
 
 
+(* ::Subsubsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    radValues, radMin, radMax,
+    angValues, angMin, angMax,
+    radMarkerRad, angMarkerRad,
+    radMarkerAng, angMarkerAng,
+    axesLabel, textStyle,
+    dummyForTrailingCommas
+  },
+  (* Contours *)
+  radValues = Subdivide[0, 1, 6];
+  {radMin, radMax} = MinMax[radValues];
+  angValues = Subdivide[0, 2 Pi, 12];
+  {angMin, angMax} = MinMax[angValues];
+  (* Polar coordinate markers *)
+  radMarkerRad = radValues[[-2]];
+  angMarkerRad = radValues[[-4]];
+  radMarkerAng = angMarkerAng = angValues[[2]];
+  (* Make plot *)
+  axesLabel[string_] := Row @ {string, " ", "\[Zeta]" // LaTeXStyle};
+  textStyle = Style[#, 12] &;
+  Show[
+    EmptyFrame[{-1, 1}, {-1, 1}
+      , FrameLabel -> None
+      , FrameTicksStyle -> LabelSize["Tick"]
+      , LabelStyle -> 10
+      , PlotRangePadding -> Scaled[0.03]
+    ],
+    (* Azimuthal contours *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // ReIm, {ang, angValues}]
+      , {rad, radMin, radMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> BoundaryTracingStyle["Background"]
+    ],
+    (* Radial contours (\[Rho] < 1) *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // ReIm, {rad, radValues // Most}]
+      , {ang, angMin, angMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> BoundaryTracingStyle["Background"]
+    ],
+    (* Radial contours (\[Rho] == 1) *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // ReIm, {rad, radValues // Last // List}]
+      , {ang, angMin, angMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+    ],
+    (* Radial coordinate marker *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // ReIm, {ang, {radMarkerAng}}]
+      , {rad, radMin, radMarkerRad}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[Thick, SlidesStyle["Interior"]]
+    ] /. {line_Line :> {Arrowheads @ {{0.063, 1}}, Arrow[line]}},
+    Graphics @ {
+      SlidesStyle["Interior"],
+      Text[
+        "\[Rho]" // textStyle
+        , 0.83 radMarkerRad * Exp[I radMarkerAng] // ReIm
+        , {0.3, -1.2}
+      ]
+    },
+    (* Angular coordinate marker *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // ReIm, {rad, {angMarkerRad}}]
+      , {ang, angMin, angMarkerAng}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[Thick, SlidesStyle["Interior"]]
+    ] /. {line_Line :> {Arrowheads @ {{0.055, 0.98}}, Arrow[line]}},
+    Graphics @ {
+      SlidesStyle["Interior"],
+      Text[
+        "\[CurlyPhi]" // textStyle
+        , angMarkerRad * Exp[I 3/5 angMarkerAng] // ReIm
+        , {-1.7, 0}
+      ]
+    },
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer {1, 1}
+  ]
+] // Ex["conformal_triangle-grid-zeta-space-slides.pdf"];
+
+
 (* ::Subsection:: *)
 (*z-space*)
 
@@ -888,6 +982,102 @@ Module[
 ] // Ex["conformal_triangle-grid-z-space.pdf"]
 
 
+(* ::Subsubsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    xMin, xMax, yMin, yMax,
+    radValues, radMin, radMax,
+    angValues, angMin, angMax,
+    radMarkerRad, angMarkerRad,
+    radMarkerAng, angMarkerAng,
+    axesLabel, textStyle,
+    dummyForTrailingCommas
+  },
+  (* Plot range (z-space) *)
+  {xMin, xMax} = {yMin, yMax} = Abs[zOfZeta[rho0]] {-1, 1};
+  (* Contours (\[Zeta]-space) *)
+  radValues = Subdivide[0, 1, 6] /. {0 -> rho0/2};
+  {radMin, radMax} = MinMax[radValues];
+  angValues = Subdivide[0, 2 Pi, 12];
+  {angMin, angMax} = MinMax[angValues];
+  (* Polar coordinate markers *)
+  radMarkerRad = radValues[[-2]];
+  angMarkerRad = radValues[[-4]];
+  radMarkerAng = angMarkerAng = angValues[[2]];
+  (* Make plot *)
+  axesLabel[string_] := Row @ {string, "\[ThinSpace]", Italicise["z"]};
+  textStyle = Style[#, 12] &;
+  Show[
+    EmptyFrame[{xMin, xMax}, {yMin, yMax}
+      , FrameLabel -> None
+      , FrameTicksStyle -> LabelSize["Tick"]
+      , LabelStyle -> 10
+    ],
+    (* Azimuthal contours *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // xyOfZeta, {ang, angValues}]
+      , {rad, radMin/2, radMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> BoundaryTracingStyle["Background"]
+    ],
+    (* Radial contours (\[Rho] < 1) *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // xyOfZeta, {rad, radValues // Most}]
+      , {ang, angMin, angMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> BoundaryTracingStyle["Background"]
+    ],
+    (* Radial contours (\[Rho] == 1) *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // xyOfZeta, {rad, radValues // Last // List}]
+      , {ang, angMin, angMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+    ],
+    (* Radial coordinate marker *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // xyOfZeta, {ang, {radMarkerAng}}]
+      , {rad, radMin, radMarkerRad}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[Thick, SlidesStyle["Interior"]]
+    ] /. {line_Line :> {Arrowheads @ {{0.065, 0.7}}, Arrow[line]}},
+    Graphics @ {
+      SlidesStyle["Interior"],
+      Text[
+        "\[Rho]" // textStyle
+        , 0.3 radMarkerRad * Exp[I radMarkerAng] // xyOfZeta
+        , {1.2, 0.7}
+      ]
+    },
+    (* Angular coordinate marker *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // xyOfZeta, {rad, {angMarkerRad}}]
+      , {ang, angMin, angMarkerAng}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[Thick, SlidesStyle["Interior"]]
+    ] /. {line_Line :> {Arrowheads @ {{0.06, 0.97}}, Arrow[line]}},
+    Graphics @ {
+      SlidesStyle["Interior"],
+      Text[
+        "\[CurlyPhi]" // textStyle
+        , angMarkerRad * Exp[I 1/2 angMarkerAng] // xyOfZeta
+        , {-1.7, 0}
+      ]
+    },
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer {1, 1}
+  ]
+] // Ex["conformal_triangle-grid-z-space-slides.pdf"];
+
+
 (* ::Section:: *)
 (*Figure: known solution (conformal_triangle-known-solution)*)
 
@@ -929,6 +1119,7 @@ Module[
     , Mesh -> {5, 8}
     , MeshStyle -> BoundaryTracingStyle["Edge3D"]
     , PlotPoints -> 50
+    , PlotRange -> {0, Automatic}
     , PlotStyle -> Directive[GeneralStyle["Translucent"], BoundaryTracingStyle["Solution3D"]]
     , TicksStyle -> LabelSize["Tick"]
   ]
@@ -936,6 +1127,86 @@ Module[
   , Background -> None
   , ImageResolution -> 4 BasicImageResolution
 ]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    radMin, radMax,
+    angMin, angMax,
+    axesLabel,
+    dummyForTrailingCommas
+  },
+  (* Plot range (\[Zeta]-space) *)
+  {radMin, radMax} = {rho0, 1};
+  {angMin, angMax} = {0, 2 Pi};
+  (* Make plot *)
+  axesLabel[string_] := Row @ {string, "\[ThinSpace]", Italicise["z"]};
+  Show[
+    ParametricPlot3D[
+      Append[
+        xyOfZeta[#],
+        temperature[#]
+      ] & [
+        rad Exp[I ang]
+      ]
+      , {rad, radMin, radMax}
+      , {ang, angMin, angMax}
+      , AxesEdge -> {{-1, -1}, {+1, -1}, {-1, -1}}
+      , AxesLabel -> {
+          axesLabel["Re"] // Margined @ {{0, 5}, {0, -2}},
+          axesLabel["Im"] // Margined @ {{3, 0}, {0, 0}},
+          Italicise["T"] // Margined @ {{0, 0}, {0, 30}}
+        }
+      , BoundaryStyle -> BoundaryTracingStyle["Edge3D"]
+      , Boxed -> {Back, Bottom, Left}
+      , BoxRatios -> {Automatic, Automatic, 3.5}
+      , Exclusions -> None
+      , ImageSize -> 360
+      , LabelStyle -> Directive[Black, 16]
+      , Lighting -> GeneralStyle["AmbientLighting"]
+      , Mesh -> {5, 8}
+      , MeshStyle -> Thickness[0.005]
+      , PlotPoints -> 50
+      , PlotRange -> {0, Automatic}
+      , PlotStyle -> SlidesStyle["InteriorRegion"]
+      , TicksStyle -> 12
+    ],
+    ParametricPlot3D[
+      Append[
+        xyOfZeta[#],
+        0
+      ] & [
+        rad Exp[I ang]
+      ]
+      , {rad, 1/2 radMin, radMin}
+      , {ang, angMin, angMax}
+      , Exclusions -> None
+      , Lighting -> GeneralStyle["AmbientLighting"]
+      , Mesh -> None
+      , PlotPoints -> 20
+      , PlotStyle -> Directive[GeneralStyle["Translucent"], BoundaryTracingStyle["Unphysical"]]
+    ],
+    (* Triangular source *)
+    Graphics3D @ {
+      SlidesStyle["Source"], Thickness[0.015],
+      Line @ {
+        Table[
+          ReIm @ Exp[I 2 Pi k/3] // Append[b]
+          , {k, 0, 3}
+        ]
+      },
+      {}
+    },
+    {}
+    , ViewPoint -> {1.25, -2.7, 1.6}
+  ]
+] // Ex["conformal_triangle-known-solution-slides.png"
+  , Background -> None
+];
 
 
 (* ::Section:: *)
@@ -1012,6 +1283,75 @@ Module[
     , ImageSize -> 0.47 ImageSizeTextWidth
   ]
 ] // Ex["conformal_triangle-traced-boundaries-zeta-space.pdf"]
+
+
+(* ::Subsubsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    radValues, radMin, radMax,
+    angValues, angMin, angMax,
+    axesLabel, textStyle,
+    dummyForTrailingCommas
+  },
+  (* Contours *)
+  radValues = Subdivide[0, 1, 6];
+  {radMin, radMax} = MinMax[radValues];
+  angValues = Subdivide[0, 2 Pi, 12];
+  {angMin, angMax} = MinMax[angValues];
+  (* Make plot *)
+  axesLabel[string_] := Row @ {string, " ", "\[Zeta]" // LaTeXStyle};
+  textStyle = Style[#, 12] &;
+  Show[
+    EmptyFrame[{-1, 1}, {-1, 1}
+      , FrameLabel -> None
+      , FrameTicksStyle -> LabelSize["Tick"]
+      , LabelStyle -> 10
+      , PlotRangePadding -> Scaled[0.03]
+    ],
+    (* Non-viable domain *)
+    RegionPlot[
+      viability[xx + I yy] < 0
+        && Abs[xx + I yy] < 1
+        && temperature[xx + I yy] > 0
+      , {xx, -radMax, radMax}
+      , {yy, -radMax, radMax}
+      , BoundaryStyle -> None
+      , PlotPoints -> 15
+      , PlotStyle -> BoundaryTracingStyle["NonViable"]
+    ],
+    (* Radial contour \[Rho] == 1 *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // ReIm, {rad, radValues // Last // List}]
+      , {ang, angMin, angMax}
+      , PlotPoints -> 2
+      , PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+    ],
+    (* Traced boundaries *)
+    Table[
+      Table[
+        ParametricPlot[
+          zeta[s] * omega^k // ReIm // Evaluate
+          , {s, DomainStart[zeta], DomainEnd[zeta]}
+          , PlotPoints -> 2
+          , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+        , {zeta, zetaTracedList[type, branchSign]}
+      ]
+      , {type, tracedTypeList}
+      , {branchSign, {-1, 1}}
+      , {k, 0, 2}
+    ],
+    (* Unphysical region *)
+    Graphics @ {BoundaryTracingStyle["Unphysical"],
+      Disk[{0, 0}, rho0]
+    },
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer {1, 1}
+  ]
+] // Ex["conformal_triangle-traced-boundaries-zeta-space-slides.pdf"];
 
 
 (* ::Subsection:: *)
@@ -1146,6 +1486,135 @@ Module[
 ] // Ex["conformal_triangle-traced-boundaries-z-space.pdf"]
 
 
+(* ::Subsubsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    xMin, xMax, yMin, yMax,
+    radValues, radMin, radMax,
+    angValues, angMin, angMax,
+    axesLabel, textStyle,
+      rHyperbolic,
+      more,
+    dummyForTrailingCommas
+  },
+  (* Plot range (z-space) *)
+  {xMin, xMax} = {yMin, yMax} = Abs[zOfZeta[rho0]] {-1, 1};
+  (* Contours (\[Zeta]-space) *)
+  radValues = Subdivide[0, 1, 6] /. {0 -> rho0/2};
+  {radMin, radMax} = MinMax[radValues];
+  angValues = Subdivide[0, 2 Pi, 12];
+  {angMin, angMax} = MinMax[angValues];
+  (* Make plot *)
+  axesLabel[string_] := Row @ {string, "\[ThinSpace]", Italicise["z"]};
+  textStyle = Style[#, 12] &;
+  Show[
+    EmptyFrame[{xMin, xMax}, {yMin, yMax}
+      , FrameLabel -> None
+      , FrameTicksStyle -> LabelSize["Tick"]
+      , LabelStyle -> 10
+    ],
+    (* Non-viable domain *)
+    (*
+      The inverse map \[Zeta](z) is expensive to compute,
+      so we instead generate the region in \[Zeta]-space
+      and map forward to z-space, which is cheap.
+      Credit to Michael E2 for the implementation,
+      see <https://mathematica.stackexchange.com/a/85922>.
+      Re-use permission granted in comments, see archived version:
+      <https://web.archive.org/web/20210407060154/https://mathematica.stackexchange.com/questions/85919/transforming-a-region-obtained-with-regionplot>
+    *)
+    Module[
+      {
+        zetaRegion, zetaBoundaryRegion,
+        fun, zBoundaryMesh, zMesh, zRegion,
+        dummyForTrailingCommas1
+      },
+      (* \[Zeta]-space *)
+      zetaRegion =
+        DiscretizeGraphics @ RegionPlot[
+          viability[xx + I yy] < 0
+            && Abs[xx + I yy] < 1
+            && temperature[xx + I yy] > 0
+          , {xx, -radMax, radMax}
+          , {yy, -radMax, radMax}
+        ];
+      zetaBoundaryRegion = BoundaryMesh[zetaRegion];
+      (* Forward transformation *)
+      fun = Function[{xx, yy}, xyOfZeta[xx + I yy]];
+      zBoundaryMesh =
+        ToBoundaryMesh[
+          "Coordinates" -> fun @@@ MeshCoordinates[zetaBoundaryRegion],
+          "BoundaryElements" -> {LineElement @@ Thread[MeshCells[zetaBoundaryRegion, 1], Line]}
+        ];
+      (* z-space *)
+      zMesh =
+        ToElementMesh[zBoundaryMesh
+          , MaxCellMeasure -> {"Area" -> Infinity}
+          , "MeshOrder" -> 1
+        ];
+      zRegion = DiscretizeRegion[MeshRegion[zMesh], MaxCellMeasure -> 1];
+      (* Plot *)
+      rHyperbolic = Abs @ zOfZeta[radHyperbolic];
+      Quiet[
+        RegionPlot[RegionMember[zRegion, {x, y}]
+          , {x, -rHyperbolic, rHyperbolic}
+          , {y, -rHyperbolic, rHyperbolic}
+          , BoundaryStyle -> None
+          , PlotStyle -> Directive[BoundaryTracingStyle["NonViable"], GrayLevel[0.7]]
+        ]
+        , {ImplicitRegion::bcond}
+          (*
+            Using RegionMember raises the warning ImplicitRegion::bcond,
+            but reduces the file size by over 600 kB.
+          *)
+      ]
+    ],
+    (* Radial contour \[Rho] == 1 (which is the triangle in z-space) *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // xyOfZeta, {rad, radValues // Last // List}]
+      , {ang, angMin, angMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+    ],
+    (* Traced boundaries *)
+    Table[
+      Table[
+        ParametricPlot[
+          zeta[s] * omega^k // xyOfZeta // Evaluate
+          , {s, DomainStart[zeta], DomainEnd[zeta]}
+          , PlotPoints -> 2
+          , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+        , {zeta, zetaTracedList[type, branchSign]}
+      ]
+      , {type, tracedTypeList}
+      , {branchSign, {-1, 1}}
+      , {k, 0, 2}
+    ],
+    (* Unphysical region *)
+    (*
+      We cheat and pretend the boundary is circular.
+      Close enough for practical purposes.
+    *)
+    more = 1.2;
+    RegionPlot[
+      Abs[x + I y] > Abs[zOfZeta[rho0]]
+      , {x, more * xMin, more * xMax}
+      , {y, more * yMin, more * yMax}
+      , BoundaryStyle -> None
+      , PlotStyle -> BoundaryTracingStyle["Unphysical"]
+      , PlotPoints -> 5
+    ],
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer {1, 1}
+  ]
+] // Ex["conformal_triangle-traced-boundaries-z-space-slides.pdf"];
+
+
 (* ::Subsection:: *)
 (*Legend*)
 
@@ -1235,3 +1704,58 @@ Module[
     , ImageSize -> 0.44 ImageSizeTextWidth
   ]
 ] // Ex["conformal_triangle-domain.pdf"]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    xMin, xMax, yMin, yMax,
+    radValues, radMin, radMax,
+    angValues, angMin, angMax,
+    axesLabel,
+    dummyForTrailingCommas
+  },
+  (* Plot range (z-space) *)
+  {xMin, xMax} = {yMin, yMax} = Abs[zOfZeta[rho0]] {-1, 1};
+  (* Contours (\[Zeta]-space) *)
+  radValues = Subdivide[0, 1, 6] /. {0 -> rho0/2};
+  {radMin, radMax} = MinMax[radValues];
+  angValues = Subdivide[0, 2 Pi, 12];
+  {angMin, angMax} = MinMax[angValues];
+  (* Make plot *)
+  axesLabel[string_] := Row @ {string, "\[ThinSpace]", Italicise["z"]};
+  Show[
+    EmptyFrame[{xMin, xMax}, {yMin, yMax}
+      , FrameLabel -> None
+      , FrameTicksStyle -> LabelSize["Tick"]
+      , LabelStyle -> 10
+    ],
+    (* Radial contour \[Rho] == 1 (which is the triangle in z-space) *)
+    ParametricPlot[
+      Table[rad Exp[I ang] // xyOfZeta, {rad, radValues // Last // List}]
+      , {ang, angMin, angMax}
+      , PlotPoints -> 2
+      , PlotRange -> Full
+      , PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+    ],
+    (* Traced boundaries *)
+    Table[
+      Table[
+        ParametricPlot[
+          reflect[zeta[s]] * omega^k // xyOfZeta // Evaluate
+          , {s, sVerificationStart, sVerificationEnd}
+          , PlotPoints -> 2
+          , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+        , {zeta, {zetaTracedVerification}}
+        , {reflect, {Identity, Conjugate}}
+      ]
+      , {k, 0, 2}
+    ],
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer {1, 1}
+  ]
+] // Ex["conformal_triangle-domain-slides.pdf"];

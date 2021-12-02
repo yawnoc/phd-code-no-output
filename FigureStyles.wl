@@ -206,6 +206,7 @@ SquigglyArrow[{xBase_, yBase_}, phi_: 0, size_: 1] :=
 
 SlidesStyle[type_String : Automatic] := Association[
   "Boundary" -> RGBColor["#9400D3"],
+  "Interior" -> Blue,
   "InteriorRegion" -> RGBColor["#DEF0FF"],
   "Source" -> Red,
   "SourceRegion" -> RGBColor["#FFD9D9"],

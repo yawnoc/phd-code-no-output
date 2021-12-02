@@ -6479,7 +6479,7 @@ Module[{source, tSol, mesh, tExact, relError},
   (* Known exact solution *)
   tExact[x_, y_] := VBipolar[x, y];
   (* Relative error *)
-  relError[x_, y_] := tSol[x, y] / tExact[x, y] - 1;
+  relError[x_, y_] := tSol[x, y] / tExact[x, y] - 1 // Abs;
   Module[{x, y},
     Plot3D[relError[x, y], Element[{x, y}, mesh]
       , AxesEdge -> {{-1, -1}, {+1, -1}, {-1, -1}}
@@ -6491,13 +6491,13 @@ Module[{source, tSol, mesh, tExact, relError},
       , BoundaryStyle -> BoundaryTracingStyle["Edge3D"]
       , Boxed -> {Back, Bottom, Left}
       , BoxRatios -> {Automatic, Automatic, 0.09}
-      , ImageSize -> 0.42 ImageSizeTextWidth
+      , ImageSize -> 0.42 {1, 532/691} ImageSizeTextWidth
       , LabelStyle -> LatinModernLabelStyle @ LabelSize["Axis"]
       , Lighting -> GeneralStyle["AmbientLighting"]
       , MeshStyle -> BoundaryTracingStyle["Edge3D"]
       , PlotLabel -> (Style["Relative error", LabelSize["Axis"] - 1] // Margined @ {{0, 20}, {0, 0}})
       , PlotRange -> Full
-      , PlotRangePadding -> {Scaled /@ {0.04, 0.01}, Scaled[0.05], Scaled /@ {0.25, 0}}
+      , PlotRangePadding -> {Scaled /@ {0.04, 0.01}, Scaled[0.05], Scaled /@ {0, 0.25}}
       , PlotStyle -> Directive[GeneralStyle["Translucent"], BoundaryTracingStyle["Solution3D"]]
       , TicksStyle -> LabelSize["Tick"]
       , ViewPoint -> {1.6, -2.4, 1.5}

@@ -213,6 +213,111 @@ Module[
 
 
 (* ::Section:: *)
+(*Figure: complex example BVP (complex-example-bvp)*)
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    conductionA, conductionB, conductionPhi,
+    conductionXY, conductionNormalPhi,
+    bathX, bathY, bathR,
+    textStyle, textStyleGreek,
+    radiationArrowClearanceFactor,
+    dummyForTrailingCommas
+  },
+  (* Conduction ellipse *)
+  {conductionA, conductionB} = {8, 5};
+  conductionPhi = 20 Degree;
+  (* Geometry *)
+  (* (see <https://math.stackexchange.com/a/990013> for angle of normal) *)
+  conductionXY[ang_] := {conductionA Cos[ang], conductionB Sin[ang]};
+  conductionNormalPhi[ang_] := ArcTan[conductionB Cos[ang], conductionA Sin[ang]];
+  (* Heat bath triangle *)
+  {bathX, bathY} = {-2, -1};
+  bathR = 3.2;
+  (* Diagram *)
+  textStyle = Style[#, 10] &;
+  textStyleGreek = Style[#, 10] &;
+  Show[
+    (* Conduction ellipse *)
+    Graphics @ {
+      EdgeForm @ Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]],
+      FaceForm @ SlidesStyle["InteriorRegion"],
+      Disk[{0, 0}, {conductionA, conductionB}]
+        // Rotate[#, conductionPhi] &
+    },
+    Graphics @ {
+      Text[
+        Column[
+          {
+            "conduction" // textStyle,
+            Italicise["\[CapitalOmega]"] // textStyleGreek
+          }
+          , Alignment -> Right
+          , Spacings -> 0.1
+        ]
+        , -{bathX, 2 bathY}
+      ]
+    },
+    (* Convection *)
+    radiationArrowClearanceFactor = 1.1;
+    Graphics @ {Arrowheads[0.03],
+      Table[
+        SquigglyArrow[
+          radiationArrowClearanceFactor * conductionXY[ang]
+          , conductionNormalPhi[ang]
+          , 2.5
+        ]
+        , {ang, Subdivide[0, 2 Pi, 8]}
+      ]
+        // Rotate[#, conductionPhi] &
+    },
+    Graphics @ {
+      Text[
+        Column[
+          {
+            "convection" // textStyle,
+            SeparatedRow[
+              If[$OperatingSystem == "Windows",
+                StringRepeat["\[NegativeThickSpace]", 9] <> "\[NegativeVeryThinSpace]" // textStyle,
+                ""
+              ]
+            ] @@ {
+              "\[PartialD]" // textStyleGreek,
+              Italicise["\[CapitalOmega]"] // textStyleGreek
+            }
+          }
+          , Alignment -> Right
+          , Spacings -> 0
+        ]
+        , conductionXY[4.8/8 Pi] // RotationTransform[conductionPhi]
+        , {1.1, -1}
+      ]
+    },
+    (* Heat bath triangle *)
+    Graphics @ {
+      FaceForm @ SlidesStyle["SourceRegion"],
+      EdgeForm @ SlidesStyle["Source"],
+      RegularPolygon[{bathX, bathY}, {bathR, 0}, 3]
+    },
+    Graphics @ {
+      Text[
+        "heat" // textStyle
+        , {bathX, bathY}
+        , {-0.1, -0.1}
+      ]
+    },
+    {}
+    , ImageSize -> 0.5 ImageSizeTextWidthBeamer
+  ]
+] // Ex["complex-example-bvp-slides.pdf"];
+
+
+(* ::Section:: *)
 (*Figure: self viewing radiation elements (self-viewing-radiation-elements)*)
 
 

@@ -4891,6 +4891,56 @@ Module[{a, b, source, tSol, mesh, dest},
 
 
 (* ::Section:: *)
+(*Figure: known solution (known-solution)*)
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    b,
+    xMin, xMax, yMax,
+    dummyForTrailingCommas
+  },
+  (* Values of B *)
+  b = 1;
+  (* Plot range *)
+  xMin = 0;
+  xMax = xStraight;
+  yMax = 2;
+  (* Make plot *)
+  Show[
+    Plot3D[
+      tKnown[b][x, y]
+      , {x, xMin, xMax}
+      , {y, -yMax, yMax}
+      , AxesEdge -> {{-1, -1}, {-1, -1}, {-1, +1}}
+      , AxesLabel -> {xIt, yIt, Italicise["T"] // Margined @ {{0, 5}, {0, 0}}}
+      , ClippingStyle -> BoundaryTracingStyle["Unphysical"]
+      , LabelStyle -> Directive[Black, 18]
+      , Lighting -> GeneralStyle["AmbientLighting"]
+      , PlotPoints -> 50
+      , PlotRange -> {0, Full}
+      , PlotStyle -> SlidesStyle["InteriorRegion"]
+      , TicksStyle -> 14
+      , ViewPoint -> {-2.6, -1.4, 1}
+    ],
+    Graphics3D @ {
+      Dashed, SlidesStyle["Source"], Thickness[0.01],
+      Line @ {{xStraight, -yMax, 1}, {xStraight, +yMax, 1}},
+      {}
+    },
+    {}
+    , ImageSize -> 360
+  ]
+] // Ex["cosine_simple-known-solution-slides.png"
+  , Background -> None
+];
+
+
+(* ::Section:: *)
 (*Figure: (Un)physical region (cosine-physical.pdf)*)
 
 
@@ -5871,6 +5921,219 @@ Module[
       // Ex["cosine_simple-candidate-domains-legend.pdf"]
   }
 ]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    b,
+    numA,
+    aStep, aValues,
+    aMin, xRadAMin, yEndAMin,
+    eps,
+    yMaxFrame, xMinFrame, xMaxFrame,
+    numCandidates, imageSize,
+    plotList,
+    xRad, yEnd,
+    xRadEvenExtension,
+    yInfl, xInfl,
+    textStyle, arrowStyle,
+    parameterArrow,
+    xGraphicsAInfl, xGraphicsA1,
+    legendLabelStyle,
+    legendCurves, legendNodes,
+    textStyleBracket,
+    dummyForTrailingCommas
+   },
+  (* Value of B *)
+  b = 1;
+  (* Number of A from A_i to 1 inclusive *)
+  numA = 4;
+  (* Values of A *)
+  aStep = (1 - aInflSimp) / (numA - 1);
+  aValues = aInflSimp + aStep * Range[-2, numA - 1];
+  (* Plot range *)
+  aMin = Min[aValues];
+  xRadAMin = xTraCandSimp[aMin, True];
+  yEndAMin = DomainEnd[xRadAMin];
+  eps = 0.02;
+  yMaxFrame = yEndAMin;
+  xMinFrame = (1 - eps) x0Simp[aMin];
+  xMaxFrame = 1.1 xStraight;
+  (* Image width arithmetic *)
+  numCandidates = Length[aValues];
+  imageSize["Main"] = 0.5 ImageSizeTextWidthBeamer;
+  imageSize["Legend"] = 0.4 ImageSizeTextWidth;
+  imageSize["Candidate"] = imageSize["Main"] / (numCandidates + 1);
+  (* List of plots *)
+  plotList =
+    Table[
+      (* Radiation boundary x == x(y) for convex domain *)
+      xRad = xTraCandSimp[a, True];
+      yEnd = DomainEnd[xRad];
+      xRadEvenExtension = Function[{y}, xRad[Abs @ y] // Evaluate];
+      (* Point of inflection *)
+      Which[
+        a < aInflSimp,
+          yInfl = SeekRoot[
+            curTra[a, b][xRad[#], #] &,
+            {DomainStart[xRad], DomainEnd[xRad]}
+          ],
+        a == aInflSimp,
+          yInfl = DomainEnd[xRad],
+        True,
+          yInfl = Indeterminate
+      ];
+      xInfl = xRad[yInfl];
+      (* Plot *)
+      Show[
+        EmptyFrame[
+          {xMinFrame, xMaxFrame}, {-yMaxFrame, yMaxFrame}
+          , Frame -> None
+          , ImageSize -> imageSize["Candidate"]
+          , PlotRangePadding -> None
+        ],
+        (* Convex domain *)
+        ParametricPlot[
+          {
+            {xStraight, y},
+            {xRadEvenExtension[y], y}
+          }
+          , {y, -yEnd, yEnd}
+          , PlotPoints -> 2
+          , PlotStyle -> {
+              Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]],
+              Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+            }
+        ],
+        (* Point of inflection *)
+        If[NumericQ[yInfl],
+          Graphics @ {GeneralStyle["Point"],
+            Point @ {{xInfl, yInfl}, {xInfl, -yInfl}}
+          },
+          {}
+        ],
+        {}
+      ]
+      , {a, aValues}
+    ];
+  (* Parameter (A) increase indicator arrow *)
+  textStyle = Style[#, 10] &;
+  arrowStyle = Directive[Thickness[0.005], Arrowheads[0.07]];
+  parameterArrow =
+    Show[
+      (* A-axis *)
+      Graphics @ {arrowStyle,
+        Arrow @ {{0, 0}, {1, 0}}
+      },
+      Graphics @ {
+        Text[
+          Italicise["A"] // textStyle
+          , {1, 0}
+          , {-1.5, 0}
+        ]
+      },
+      (* A == A_infl *)
+      xGraphicsAInfl = 0.38;
+      Graphics @ {arrowStyle,
+        Line @ {
+          {xGraphicsAInfl, 0},
+          {xGraphicsAInfl, -0.02}
+        }
+      },
+      Graphics @ {
+        Text[
+          Subscript[Italicise["A"], "i"] == SignificantFiguresForm[5][aInflSimp]
+            // textStyle
+          , {xGraphicsAInfl, 0}
+          , {0, 1.5}
+        ]
+      },
+      (* A == 1 *)
+      xGraphicsA1 = 0.84;
+      Graphics @ {arrowStyle,
+        Line @ {
+          {xGraphicsA1, 0},
+          {xGraphicsA1, -0.02}
+        }
+      },
+      Graphics @ {
+        Text[
+          1 // textStyle
+          , {xGraphicsA1, 0}
+          , {0, 1.5}
+        ]
+      },
+      (* Convexity-interval labels *)
+      Graphics @ {
+        Text[
+          "non\[Hyphen]convex" // textStyle
+          (* NOTE: use '\\[Hyphen]' to prevent parsing as minus sign *)
+          , {Way[0, xGraphicsAInfl, 0.47], 0}
+          , {0, -1.2}
+        ],
+        Text[
+          "convex" // textStyle
+          , {Way[xGraphicsAInfl, xGraphicsA1], 0}
+          , {0, -1.2}
+        ],
+        {}
+      },
+      {}
+      , ImageSize -> imageSize["Main"]
+      , PlotRange -> All
+      , PlotRangePadding -> None
+    ];
+  (* Legend *)
+  legendLabelStyle = LatinModernLabelStyle @ LabelSize["Legend"];
+  legendCurves =
+    CurveLegend[
+      BoundaryTracingStyle /@ {"Traced", "Contour"},
+      {"radiation", "constant temperature"}
+      , LabelStyle -> legendLabelStyle
+    ];
+  legendNodes =
+    NodeLegend[
+      {Automatic},
+      {
+        textStyleBracket = Style[#, LabelSize["Legend"] + 2] &;
+        Row @ {
+          "inflection",
+          " ",
+          "(" // textStyleBracket,
+            "\[NegativeVeryThinSpace]",
+          Subscript[Italicise["x"], "\[VeryThinSpace]i"],
+          ",",
+          "\[VeryThinSpace]",
+          Subscript[Italicise["y"], "i"],
+          ")" // textStyleBracket,
+          Nothing
+        }
+      }
+      , LabelStyle -> legendLabelStyle
+      , LegendMarkerSize -> Automatic
+    ];
+  (* Export *)
+  {
+    (* Main *)
+    Column[
+      {
+        Grid[
+          List @ Append[
+            plotList,
+            Graphics[ImageSize -> imageSize["Candidate"]]
+          ]
+          , Spacings -> 0
+        ],
+        parameterArrow
+      }
+      , Spacings -> 0.1
+    ] // Ex["cosine_simple-candidate-domains-slides.pdf"]
+  }
+];
 
 
 (* ::Section:: *)
@@ -7038,6 +7301,187 @@ Module[
     {}
   ]
 ] // Ex["cosine_general-asymmetric_domain.pdf"]
+
+
+(* ::Subsubsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    a, b,
+    yReflection, includeYReflection,
+    textStyle,
+    xMin, xMax, yMax,
+    margin,
+    yTop, yBottom,
+    dummyForTrailingCommas
+  },
+  (* Values of A and B *)
+  a = aAsymm;
+  b = bAsymm;
+  (* Reflection in y (across x-axis) *)
+  yReflection = # * {1, -1} &;
+  includeYReflection = {#, yReflection[#]} &;
+  (* Text style *)
+  textStyle = Style[#, 9] &;
+  (* Plot range *)
+  xMin = Floor[0.9 xFlat[a, b], 0.2];
+  xMax = Ceiling[1.1 xSharp[a, b], 0.2];
+  yMax = Ceiling[0.7 (xMax - xMin), 0.2];
+  (* Absolute plot range margin *)
+  margin = 0.1;
+  (* Endpoints for constant temperature boundary *)
+  yTop = xyTraAsymm["lower"][[2]] @ DomainStart @ xyTraAsymm["lower"];
+  yBottom = xyTraAsymm["upper"][[2]] @ DomainEnd @ xyTraAsymm["upper"];
+  (* Plot *)
+  Show[
+    EmptyFrame[{xMin, xMax}, {-yMax, yMax}
+      , FrameLabel -> {
+          Italicise["x"] // Margined @ {{0, 0}, {0, -15}},
+          Italicise["y"]
+        }
+      , FrameTicksStyle -> 8
+      , LabelStyle -> 11
+    ],
+    (* Line of symmetry *)
+    Graphics @ {
+      Gray, Dashed,
+      Line @ {{xMin, 0}, {xMax, 0}}
+    },
+    (* Straight contour *)
+    ParametricPlot[
+      {xStraight, y},
+      {y, yTop, yBottom}
+      , PlotPoints -> 2
+      , PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+    ],
+    (* Domain radiation boundaries *)
+    Table[
+      ParametricPlot[
+        xyTraAsymm[id][s] // Through,
+        {s, DomainStart @ xyTraAsymm[id], DomainEnd @ xyTraAsymm[id]}
+        , PlotPoints -> 2
+        , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+      ]
+      , {id, {"upper", "lower"}}
+    ],
+    (* Straight contour and constant temperature labels *)
+    Graphics @ {
+      SlidesStyle["Source"],
+      Text[
+        xIt == SeparatedRow["VeryThin"]["\[Pi]", "/", 2] // textStyle
+        , {xStraight, Way[yBottom, yTop, 7/10]}
+        , {0, 1.3}
+        , {0, 1}
+      ]
+    },
+    Graphics @ {
+      SlidesStyle["Source"],
+      Text[
+        Italicise["T"] == 1 // textStyle
+        , {xStraight, Way[yBottom, yTop, 3/10]}
+        , {0, 1.5}
+        , {0, 1}
+      ]
+    },
+    {}
+    , ImageSize -> 0.5 * 0.8 ImageSizeTextWidthBeamer
+  ]
+] // Ex["cosine_general-asymmetric_domain-slides.pdf"];
+
+
+(* ::Subsubsection:: *)
+(*Version for slides, with mesh*)
+
+
+Module[
+  {
+    a, b,
+    mesh,
+    yReflection, includeYReflection,
+    textStyle,
+    xMin, xMax, yMax,
+    margin,
+    yTop, yBottom,
+    dummyForTrailingCommas
+  },
+  (* Values of A and B *)
+  a = aAsymm;
+  b = bAsymm;
+  (* Finite element mesh *)
+  mesh = Import["cosine_general-verification-mesh-asymmetric.txt"] // Uncompress // First;
+  (* Reflection in y (across x-axis) *)
+  yReflection = # * {1, -1} &;
+  includeYReflection = {#, yReflection[#]} &;
+  (* Text style *)
+  textStyle = Style[#, 9] &;
+  (* Plot range *)
+  xMin = Floor[0.9 xFlat[a, b], 0.2];
+  xMax = Ceiling[1.1 xSharp[a, b], 0.2];
+  yMax = Ceiling[0.7 (xMax - xMin), 0.2];
+  (* Absolute plot range margin *)
+  margin = 0.1;
+  (* Endpoints for constant temperature boundary *)
+  yTop = xyTraAsymm["lower"][[2]] @ DomainStart @ xyTraAsymm["lower"];
+  yBottom = xyTraAsymm["upper"][[2]] @ DomainEnd @ xyTraAsymm["upper"];
+  (* Plot *)
+  Show[
+    EmptyFrame[{xMin, xMax}, {-yMax, yMax}
+      , FrameLabel -> {
+          Italicise["x"] // Margined @ {{0, 0}, {0, -15}},
+          Italicise["y"]
+        }
+      , FrameTicksStyle -> 8
+      , LabelStyle -> 11
+    ],
+    (* Line of symmetry *)
+    Graphics @ {
+      Gray, Dashed,
+      Line @ {{xMin, 0}, {xMax, 0}}
+    },
+    (* Straight contour *)
+    ParametricPlot[
+      {xStraight, y},
+      {y, yTop, yBottom}
+      , PlotPoints -> 2
+      , PlotStyle -> Directive[BoundaryTracingStyle["Contour"], SlidesStyle["Source"]]
+    ],
+    (* Domain radiation boundaries *)
+    Table[
+      ParametricPlot[
+        xyTraAsymm[id][s] // Through,
+        {s, DomainStart @ xyTraAsymm[id], DomainEnd @ xyTraAsymm[id]}
+        , PlotPoints -> 2
+        , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+      ]
+      , {id, {"upper", "lower"}}
+    ],
+    (* Straight contour and constant temperature labels *)
+    Graphics @ {
+      SlidesStyle["Source"],
+      Text[
+        xIt == SeparatedRow["VeryThin"]["\[Pi]", "/", 2] // textStyle
+        , {xStraight, Way[yBottom, yTop, 7/10]}
+        , {0, 1.3}
+        , {0, 1}
+      ]
+    },
+    Graphics @ {
+      SlidesStyle["Source"],
+      Text[
+        Italicise["T"] == 1 // textStyle
+        , {xStraight, Way[yBottom, yTop, 3/10]}
+        , {0, 1.5}
+        , {0, 1}
+      ]
+    },
+    (* Finite element mesh *)
+    mesh["Wireframe"],
+    {}
+    , ImageSize -> 0.5 * 0.8 ImageSizeTextWidthBeamer
+  ]
+] // Ex["cosine_general-asymmetric_mesh-slides.pdf"];
 
 
 (* ::Subsection:: *)

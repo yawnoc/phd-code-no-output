@@ -393,3 +393,77 @@ Module[
     }
   ]
 ] // Ex @ "orthogonal-curvilinear-coordinates.pdf"
+
+
+(* ::Section:: *)
+(*Figure: Cartesian normal vector (cartesian-normal)*)
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    dx, dy, ds, slope,
+    positionStart, positionEnd,
+    normalVector, normalVectorLength, normalVectorBase, normalVectorTip,
+    textStyle,
+    dummyForTrailingCommas
+  },
+  (* Differential lengths *)
+  dx = 7;
+  dy = 2;
+  ds = Sqrt[dx^2 + dy^2];
+  slope = dy/dx;
+  (* Differential positions *)
+  positionStart = {-dx, 0};
+  positionEnd = {0, dy};
+  (* Normal vector *)
+  normalVector = {-dy, dx} / ds;
+  normalVectorLength = 1.3 ds;
+  normalVectorBase = Way[positionStart, positionEnd, 0.55];
+  normalVectorTip = normalVectorBase + normalVectorLength * normalVector;
+  (* Make diagram *)
+  textStyle = Style[#, 10] &;
+  Show[
+    (* Displacements *)
+    Graphics @ {
+      Line @ {positionStart, {0, 0}, positionEnd},
+      Text[
+        Row @ {"d", Italicise["x"]} // textStyle
+        , 1/2.2 positionStart
+        , {0, 0.9}
+      ],
+      Text[
+        Row @ {"d", Italicise["y"]} // textStyle
+        , 1/2 positionEnd
+        , {-1.7, 0}
+      ],
+      {}
+    },
+    (* Boundary *)
+    Graphics @ {
+      BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"],
+      Line @ {
+        Way[positionStart, positionEnd, -0.4],
+        Way[positionStart, positionEnd, +1.5],
+        Nothing
+      },
+      {}
+    },
+    (* Normal *)
+    Graphics @ {
+      Arrowheads[0.2], Thickness[0.04],
+      Arrow @ {normalVectorBase, normalVectorTip},
+      Text[
+        Embolden["n"] // textStyle
+        , normalVectorTip
+        , {-3, 0}
+      ],
+      {}
+    },
+    {}
+    , ImageSize -> 0.2 ImageSizeTextWidthBeamer
+  ]
+] // Ex["cartesian-normal-slides.pdf"];

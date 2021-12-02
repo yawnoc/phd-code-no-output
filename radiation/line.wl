@@ -1446,6 +1446,43 @@ Module[{source, tSol, mesh, tExact},
 
 
 (* ::Section:: *)
+(*Figure: known solution (line-known-solution)*)
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    rMax, tMax,
+    dummyForTrailingCommas
+  },
+  (* Plot range *)
+  rMax = 1.1;
+  tMax = 2.5;
+  (* Make plot *)
+  Plot3D[
+    Log[1 / RPolar[x, y]]
+    , {x, -rMax, rMax}
+    , {y, -rMax, rMax}
+    , AxesEdge -> {{-1, -1}, {+1, -1}, {-1, -1}}
+    , AxesLabel -> Italicise /@ {"x", "y", "T"}
+    , Boxed -> {Back, Bottom, Left}
+    , BoxRatios -> {Automatic, Automatic, Automatic}
+    , ClippingStyle -> {BoundaryTracingStyle["Unphysical"], None}
+    , ImageSize -> 360
+    , LabelStyle -> Directive[Black, 16]
+    , Lighting -> GeneralStyle["AmbientLighting"]
+    , PlotPoints -> 50
+    , PlotRange -> {0, tMax}
+    , PlotStyle -> SlidesStyle["InteriorRegion"]
+    , TicksStyle -> 12
+  ]
+] // Ex["line-known-solution-slides.png"];
+
+
+(* ::Section:: *)
 (*Figure: Auxiliary function (line-auxiliary-function)*)
 
 
@@ -1830,6 +1867,166 @@ Module[
     , {a, aValues}
   ]
 ]
+
+
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    aStep, aValues, aMin,
+    imageSize, rMaxShow,
+    tracedStyle,
+    rMaxNon,
+    inequality,
+    regimeName,
+    dummyForTrailingCommas
+  },
+  (* Values of A *)
+  aStep = 0.13;
+  aValues = aNat + aStep * Range[-1, 1];
+  aMin = Min[aValues];
+  (* Plot range *)
+  imageSize = 0.33 ImageSizeTextWidthBeamer;
+  rMaxShow = 1.35 rSharp[aMin];
+  (* Slightly less thick traced boundaries *)
+  tracedStyle = (
+    Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+      /. {AbsoluteThickness[d_] :> AbsoluteThickness[0.9 d]}
+  );
+  (* Plots *)
+  Table[
+    rMaxNon = If[a < aNat, rSharp[a], rNat];
+    inequality = Which[a < aNat, Less, a == aNat, Equal, a > aNat, Greater];
+    regimeName = Which[a < aNat, "hot", a == aNat, "cold_hot", a > aNat, "cold"];
+    Show[
+      EmptyFrame[{-rMaxShow, rMaxShow}, {-rMaxShow, rMaxShow}
+        , Frame -> None
+        , ImageSize -> imageSize
+      ],
+      (* Non-viable domain *)
+      If[a < aNat,
+        Graphics @ {
+          EdgeForm @ tracedStyle,
+          FaceForm @ BoundaryTracingStyle["NonViable"],
+          Annulus[{0, 0}, {rFlat[a], rSharp[a]}]
+        },
+        {}
+      ],
+      (* Traced boundaries *)
+      Which[
+        (* Hot regime || Cold-to-hot transition *)
+        a <= aNat,
+        {
+          (* Inner viable island *)
+          With[{r = \[FormalR]},
+            Module[{eps, rMin, rMax, rInit, phiMin, phiMax, rTraced, phiOffsetValues},
+              eps = 10.^-4;
+              rMin = eps;
+              rMax = (1 - eps) rFlat[a];
+              rInit = Way[rMin, rMax];
+              phiMin = -2 Pi;
+              phiMax = 2 Pi;
+              rTraced = NDSolveValue[
+                {
+                  r'[phi] == 1 / phiTraDer[a][r[phi]],
+                  r[0] == rInit,
+                  WhenEvent[{r[phi] < rMin, r[phi] > rMax}, "StopIntegration"]
+                },
+                r, {phi, phiMin, phiMax},
+                NoExtrapolation
+              ];
+              phiOffsetValues = Subdivide[0, 2 Pi, 3] // Most;
+              (* Traced boundaries *)
+              Table[
+                ParametricPlot[
+                  {
+                    XYPolar[rTraced[phi], phi + phiOffset],
+                    XYPolar[rTraced[phi], -phi + phiOffset]
+                  } // Evaluate, {phi, phiMin, phiMax}
+                  , PlotPoints -> 3
+                  , PlotStyle -> tracedStyle
+                ]
+              , {phiOffset, phiOffsetValues}]
+            ]
+          ],
+          (* Outer viable mainland *)
+          With[{r = \[FormalR]},
+            Module[{eps, rMin, rMax, rInit, phiMin, phiMax, rTraced, phiOffsetValues},
+              eps = 10.^-4;
+              rMin = (1 + eps) rSharp[a];
+              rMax = 1.5 rMaxShow;
+              rInit = Way[rMin, rMax];
+              phiMin = -Pi;
+              phiMax = 1.5 Pi;
+              rTraced = NDSolveValue[
+                {
+                  r'[phi] == 1 / phiTraDer[a][r[phi]],
+                  r[0] == rInit,
+                  WhenEvent[{r[phi] < rMin, r[phi] > rMax}, "StopIntegration"]
+                },
+                r, {phi, phiMin, phiMax},
+                NoExtrapolation
+              ];
+              phiOffsetValues = Subdivide[0, 2 Pi, 6] // Most;
+              (* Traced boundaries *)
+              Table[
+                ParametricPlot[
+                  {
+                    XYPolar[rTraced[phi], phi + phiOffset],
+                    XYPolar[rTraced[phi], -phi + phiOffset]
+                  } // Evaluate, {phi, phiMin, phiMax}
+                  , PlotPoints -> 3
+                  , PlotStyle -> tracedStyle
+                ]
+              , {phiOffset, phiOffsetValues}]
+            ]
+          ],
+          {}
+        },
+        (* Cold regime *)
+        a > aNat,
+        {
+          With[{r = \[FormalR]},
+            Module[{eps, rMin, rMax, rInit, phiMin, phiMax, rTraced, phiOffsetValues},
+              eps = 10.^-4;
+              rMin = eps;
+              rMax = 1.5 rMaxShow;
+              rInit = Way[rMin, rMax];
+              phiMin = -Pi;
+              phiMax = 2.5 Pi;
+              rTraced = NDSolveValue[
+                {
+                  r'[phi] == 1 / phiTraDer[a][r[phi]],
+                  r[0] == rInit,
+                  WhenEvent[{r[phi] < rMin, r[phi] > rMax}, "StopIntegration"]
+                },
+                r, {phi, phiMin, phiMax},
+                NoExtrapolation
+              ];
+              phiOffsetValues = Subdivide[0, 2 Pi, 3] // Most;
+              (* Traced boundaries *)
+              Table[
+                ParametricPlot[
+                  {
+                    XYPolar[rTraced[phi], phi + phiOffset],
+                    XYPolar[rTraced[phi], -phi + phiOffset]
+                  } // Evaluate, {phi, phiMin, phiMax}
+                  , PlotPoints -> 3
+                  , PlotStyle -> tracedStyle
+                ]
+              , {phiOffset, phiOffsetValues}]
+            ]
+          ]
+        },
+        True, {}
+      ],
+      {}
+    ] // Ex @ FString["line-traced-boundaries-{regimeName}-slides.pdf"]
+    , {a, aValues}
+  ]
+];
 
 
 (* ::Section:: *)
@@ -2522,6 +2719,368 @@ Module[
 ] // Ex["line-domains.pdf"]
 
 
+(* ::Subsection:: *)
+(*Version for slides*)
+
+
+Module[
+  {
+    a, rSh,
+    caseList,
+    mod2Pi, phi,
+    xMax, yMax,
+    numSpikes, modNumSpikes,
+    rSpike, phiSpike, phiCentre, phiHalfWidth,
+    plotList, caseIsRegular,
+    phiPlotted,
+    dummyForTrailingCommas
+  },
+  (* Constants *)
+  a = aHot;
+  rSh = rSharp[a];
+  (* Cases to be plotted *)
+  caseList = {"pentagon", "square", "generic"};
+  (* Abbreviations *)
+  mod2Pi = Mod[#, 2 Pi] &;
+  phi[r_] := phiTraHot["outer"][r];
+  (* List of plots *)
+  xMax = rInfl;
+  yMax = 0.9 rInfl;
+  plotList = Table[
+    (* Define spikes *)
+    ClearAll[numSpikes, rSpike, phiSpike, phiHalfWidth, phiCentre];
+    caseIsRegular = case != "generic";
+    Which[
+      caseIsRegular,
+        numSpikes = <|"pentagon" -> 5, "square" -> 4|> @ case;
+        rSpike[n_] := SeekRoot[
+          phi[(1 + 10^-6) rSh] - phi[#] - Pi / numSpikes &,
+          {rSh, rInfl}
+        ] // Evaluate;
+        phiSpike[n_] = phi[rSpike[1]];
+        phiHalfWidth[n_] = Pi / numSpikes;
+        phiCentre[n_] := (n - 1) * 2 phiHalfWidth[n];
+      ,
+      Not[caseIsRegular],
+        numSpikes = 2;
+        modNumSpikes = Mod[#, numSpikes, 1] &;
+        rSpike[1] = rInfl;
+        rSpike[2] = Way[rSh, rInfl, 3/4];
+        Table[
+          phiSpike[n] = phiTraHot["outer"] @ rSpike[n]
+          , {n, numSpikes}
+        ];
+        phiCentre[1] = 0;
+        phiCentre[2] = 135 Degree;
+        phiCentre[n_] := phiCentre[n // modNumSpikes];
+        Table[
+          phiHalfWidth[n] =
+            phiTraHot["outer"][(1 + 10^-6) rSh] - phiSpike[n]
+          , {n, numSpikes}
+        ];
+        phiHalfWidth[n_] := phiHalfWidth[n // modNumSpikes];
+      ,
+      True, {}
+    ];
+    (* Plot of constructed domain *)
+    Show[
+      EmptyFrame[{-xMax, xMax}, {-yMax, yMax}
+        , Frame -> None
+        , PlotRangePadding -> {{Scaled[-0.07], Scaled[0.03]}, None}
+      ],
+      (* Outer terminal curve (effective incircle) *)
+      Graphics @ {
+        BoundaryTracingStyle["Terminal", "Background"],
+        Circle[{0, 0}, rSh]
+      },
+      (* Traced boundaries (spikes) *)
+      Table[
+        phiPlotted[r_] := phiTraHot["outer"][r] - phiSpike[n];
+        ParametricPlot[
+          {
+            XYPolar[r, phiCentre[n] + phiPlotted[r]],
+            XYPolar[r, phiCentre[n] - phiPlotted[r]]
+          } // Evaluate
+          , {r, rSh, rSpike[n]}
+          , PlotPoints -> 2
+          , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+        , {n, numSpikes}
+      ],
+      (* Traced boundaries (terminal curve portions) *)
+      If[Not[caseIsRegular],
+        Table[
+          ParametricPlot[
+            XYPolar[rSh, ph] // Evaluate,
+            {
+              ph,
+              phiCentre[n] + phiHalfWidth[n] // mod2Pi,
+              phiCentre[n + 1] - phiHalfWidth[n + 1] // mod2Pi
+            }
+            , PlotPoints -> 2
+            , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+          ]
+          , {n, numSpikes}
+        ]
+        , {}
+      ],
+      (* Line-source singularity *)
+      Graphics @ {
+        SlidesStyle["Source"],
+        Point @ {0, 0}
+      },
+      {}
+    ]
+    , {case, caseList}
+  ];
+  (* Final figure *)
+  GraphicsRow[plotList
+    , Alignment -> Left
+    , ImageSize -> ImageSizeTextWidthBeamer
+    , PlotRangePadding -> 0
+    , Spacings -> 0
+  ]
+] // Ex["line-domains-slides.pdf"]
+
+
+(* ::Subsection:: *)
+(*Version for slides, without terminal curve*)
+
+
+Module[
+  {
+    a, rSh,
+    caseList,
+    mod2Pi, phi,
+    xMax, yMax,
+    numSpikes, modNumSpikes,
+    rSpike, phiSpike, phiCentre, phiHalfWidth,
+    plotList, caseIsRegular,
+    phiPlotted,
+    dummyForTrailingCommas
+  },
+  (* Constants *)
+  a = aHot;
+  rSh = rSharp[a];
+  (* Cases to be plotted *)
+  caseList = {"pentagon", "square", "generic"};
+  (* Abbreviations *)
+  mod2Pi = Mod[#, 2 Pi] &;
+  phi[r_] := phiTraHot["outer"][r];
+  (* List of plots *)
+  xMax = rInfl;
+  yMax = 0.9 rInfl;
+  plotList = Table[
+    (* Define spikes *)
+    ClearAll[numSpikes, rSpike, phiSpike, phiHalfWidth, phiCentre];
+    caseIsRegular = case != "generic";
+    Which[
+      caseIsRegular,
+        numSpikes = <|"pentagon" -> 5, "square" -> 4|> @ case;
+        rSpike[n_] := SeekRoot[
+          phi[(1 + 10^-6) rSh] - phi[#] - Pi / numSpikes &,
+          {rSh, rInfl}
+        ] // Evaluate;
+        phiSpike[n_] = phi[rSpike[1]];
+        phiHalfWidth[n_] = Pi / numSpikes;
+        phiCentre[n_] := (n - 1) * 2 phiHalfWidth[n];
+      ,
+      Not[caseIsRegular],
+        numSpikes = 2;
+        modNumSpikes = Mod[#, numSpikes, 1] &;
+        rSpike[1] = rInfl;
+        rSpike[2] = Way[rSh, rInfl, 3/4];
+        Table[
+          phiSpike[n] = phiTraHot["outer"] @ rSpike[n]
+          , {n, numSpikes}
+        ];
+        phiCentre[1] = 0;
+        phiCentre[2] = 135 Degree;
+        phiCentre[n_] := phiCentre[n // modNumSpikes];
+        Table[
+          phiHalfWidth[n] =
+            phiTraHot["outer"][(1 + 10^-6) rSh] - phiSpike[n]
+          , {n, numSpikes}
+        ];
+        phiHalfWidth[n_] := phiHalfWidth[n // modNumSpikes];
+      ,
+      True, {}
+    ];
+    (* Plot of constructed domain *)
+    Show[
+      EmptyFrame[{-xMax, xMax}, {-yMax, yMax}
+        , Frame -> None
+        , PlotRangePadding -> {{Scaled[-0.07], Scaled[0.03]}, None}
+      ],
+      (* Traced boundaries (spikes) *)
+      Table[
+        phiPlotted[r_] := phiTraHot["outer"][r] - phiSpike[n];
+        ParametricPlot[
+          {
+            XYPolar[r, phiCentre[n] + phiPlotted[r]],
+            XYPolar[r, phiCentre[n] - phiPlotted[r]]
+          } // Evaluate
+          , {r, rSh, rSpike[n]}
+          , PlotPoints -> 2
+          , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+        , {n, numSpikes}
+      ],
+      (* Traced boundaries (terminal curve portions) *)
+      If[Not[caseIsRegular],
+        Table[
+          ParametricPlot[
+            XYPolar[rSh, ph] // Evaluate,
+            {
+              ph,
+              phiCentre[n] + phiHalfWidth[n] // mod2Pi,
+              phiCentre[n + 1] - phiHalfWidth[n + 1] // mod2Pi
+            }
+            , PlotPoints -> 2
+            , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+          ]
+          , {n, numSpikes}
+        ]
+        , {}
+      ],
+      (* Line-source singularity *)
+      Graphics @ {
+        SlidesStyle["Source"],
+        Point @ {0, 0}
+      },
+      {}
+    ]
+    , {case, caseList}
+  ];
+  (* Final figure *)
+  GraphicsRow[plotList
+    , Alignment -> Left
+    , ImageSize -> ImageSizeTextWidthBeamer
+    , PlotRangePadding -> 0
+    , Spacings -> 0
+  ]
+] // Ex["line-domains-slides_plain.pdf"]
+
+
+(* ::Subsection:: *)
+(*Version for slides, with non-singular sources*)
+
+
+Module[
+  {
+    a, rSh,
+    caseList,
+    mod2Pi, phi,
+    xMax, yMax,
+    numSpikes, modNumSpikes,
+    rSpike, phiSpike, phiCentre, phiHalfWidth,
+    plotList, caseIsRegular,
+    phiPlotted,
+    dummyForTrailingCommas
+  },
+  (* Constants *)
+  a = aHot;
+  rSh = rSharp[a];
+  (* Cases to be plotted *)
+  caseList = {"pentagon", "square", "generic"};
+  (* Abbreviations *)
+  mod2Pi = Mod[#, 2 Pi] &;
+  phi[r_] := phiTraHot["outer"][r];
+  (* List of plots *)
+  xMax = rInfl;
+  yMax = 0.9 rInfl;
+  plotList = Table[
+    (* Define spikes *)
+    ClearAll[numSpikes, rSpike, phiSpike, phiHalfWidth, phiCentre];
+    caseIsRegular = case != "generic";
+    Which[
+      caseIsRegular,
+        numSpikes = <|"pentagon" -> 5, "square" -> 4|> @ case;
+        rSpike[n_] := SeekRoot[
+          phi[(1 + 10^-6) rSh] - phi[#] - Pi / numSpikes &,
+          {rSh, rInfl}
+        ] // Evaluate;
+        phiSpike[n_] = phi[rSpike[1]];
+        phiHalfWidth[n_] = Pi / numSpikes;
+        phiCentre[n_] := (n - 1) * 2 phiHalfWidth[n];
+      ,
+      Not[caseIsRegular],
+        numSpikes = 2;
+        modNumSpikes = Mod[#, numSpikes, 1] &;
+        rSpike[1] = rInfl;
+        rSpike[2] = Way[rSh, rInfl, 3/4];
+        Table[
+          phiSpike[n] = phiTraHot["outer"] @ rSpike[n]
+          , {n, numSpikes}
+        ];
+        phiCentre[1] = 0;
+        phiCentre[2] = 135 Degree;
+        phiCentre[n_] := phiCentre[n // modNumSpikes];
+        Table[
+          phiHalfWidth[n] =
+            phiTraHot["outer"][(1 + 10^-6) rSh] - phiSpike[n]
+          , {n, numSpikes}
+        ];
+        phiHalfWidth[n_] := phiHalfWidth[n // modNumSpikes];
+      ,
+      True, {}
+    ];
+    (* Plot of constructed domain *)
+    Show[
+      EmptyFrame[{-xMax, xMax}, {-yMax, yMax}
+        , Frame -> None
+        , PlotRangePadding -> {{Scaled[-0.07], Scaled[0.03]}, None}
+      ],
+      (* Traced boundaries (spikes) *)
+      Table[
+        phiPlotted[r_] := phiTraHot["outer"][r] - phiSpike[n];
+        ParametricPlot[
+          {
+            XYPolar[r, phiCentre[n] + phiPlotted[r]],
+            XYPolar[r, phiCentre[n] - phiPlotted[r]]
+          } // Evaluate
+          , {r, rSh, rSpike[n]}
+          , PlotPoints -> 2
+          , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+        ]
+        , {n, numSpikes}
+      ],
+      (* Traced boundaries (terminal curve portions) *)
+      If[Not[caseIsRegular],
+        Table[
+          ParametricPlot[
+            XYPolar[rSh, ph] // Evaluate,
+            {
+              ph,
+              phiCentre[n] + phiHalfWidth[n] // mod2Pi,
+              phiCentre[n + 1] - phiHalfWidth[n + 1] // mod2Pi
+            }
+            , PlotPoints -> 2
+            , PlotStyle -> Directive[BoundaryTracingStyle["Traced"], SlidesStyle["Boundary"]]
+          ]
+          , {n, numSpikes}
+        ]
+        , {}
+      ],
+      (* Constant-temperature boundary *)
+      Graphics @ {
+        BoundaryTracingStyle["Contour"], SlidesStyle["Source"],
+        Circle[{0, 0}, 0.5 rSh]
+      },
+      {}
+    ]
+    , {case, caseList}
+  ];
+  (* Final figure *)
+  GraphicsRow[plotList
+    , Alignment -> Left
+    , ImageSize -> ImageSizeTextWidthBeamer
+    , PlotRangePadding -> 0
+    , Spacings -> 0
+  ]
+] // Ex["line-domains-slides_sources.pdf"];
+
+
 (* ::Section:: *)
 (*Figure: verification domain and mesh (line-verification-domain-mesh.pdf)*)
 
@@ -2744,7 +3303,7 @@ Module[{source, tSol, mesh, tExact, relError},
   (* Known exact solution *)
   tExact[x_, y_] := Log[1 / RPolar[x, y]];
   (* Relative error *)
-  relError[x_, y_] := tSol[x, y] / tExact[x, y] - 1;
+  relError[x_, y_] := tSol[x, y] / tExact[x, y] - 1 // Abs;
   Module[{x, y},
     Plot3D[relError[x, y], Element[{x, y}, mesh]
       , AxesEdge -> {{-1, -1}, {+1, -1}, {-1, -1}}
@@ -2756,16 +3315,16 @@ Module[{source, tSol, mesh, tExact, relError},
       , BoundaryStyle -> BoundaryTracingStyle["Edge3D"]
       , Boxed -> {Back, Bottom, Left}
       , BoxRatios -> {Automatic, Automatic, 0.13}
-      , ImageSize -> 0.42 ImageSizeTextWidth
+      , ImageSize -> 0.42 {1, 594/691} ImageSizeTextWidth
       , LabelStyle -> LatinModernLabelStyle @ LabelSize["Axis"]
       , Lighting -> GeneralStyle["AmbientLighting"]
       , MeshStyle -> BoundaryTracingStyle["Edge3D"]
       , PlotLabel -> (Style["Relative error", LabelSize["Axis"] - 1] // Margined @ {{0, 10}, {0, 0}})
       , PlotRange -> Full
-      , PlotRangePadding -> {Scaled /@ {0.04, 0.01}, Scaled[0.05], Scaled /@ {0.1, 0}}
+      , PlotRangePadding -> {Scaled /@ {0.04, 0.01}, Scaled[0.05], Scaled /@ {0, 0.1}}
       , PlotStyle -> Directive[GeneralStyle["Translucent"], BoundaryTracingStyle["Solution3D"]]
       , TicksStyle -> LabelSize["Tick"]
-      , ViewPoint -> {1.6, -2.4, 1.5}
+      , ViewPoint -> {1.46, -2.4, 1.5}
     ]
   ]
 ] // Ex["line-verification-relative-error.png"
